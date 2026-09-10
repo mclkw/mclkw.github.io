@@ -15,6 +15,16 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     color: #e6edf3;
   }
+  .bg-image {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background-image: url(images/spraypaint.jpg);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
   .bg-glow {
     position: fixed;
     inset: 0;
@@ -77,6 +87,7 @@
 </style>
 </head>
 <body>
+<div class="bg-image"></div>
 <div class="bg-glow"></div>
 <div class="scene" id="scene">
   <div class="ring" id="ring"></div>
