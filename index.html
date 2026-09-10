@@ -40,9 +40,6 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    border-radius: 14px;
-    background: #10141a;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.55);
     cursor: pointer;
   }
   .card img {
@@ -51,12 +48,17 @@
     height: 100%;
     object-fit: contain;
     transform: scale(1);
-    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), filter 0.7s ease;
-    filter: brightness(0.82) saturate(0.95);
+    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .card:hover img {
     transform: scale(1.2);
-    filter: brightness(1) saturate(1.1);
+  }
+  .card .shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0.15) 55%, rgba(0,0,0,0.5));
+    opacity: 0;
+    pointer-events: none;
   }
   .label {
     position: fixed;
@@ -90,9 +92,12 @@
     const img = document.createElement("img");
     img.src = "images/" + name;
     img.alt = name.replace(".png", "");
+    const shade = document.createElement("div");
+    shade.className = "shade";
     card.appendChild(img);
+    card.appendChild(shade);
     ring.appendChild(card);
-    return card;
+    return { card, shade };
   });
 
   const n = cards.length;
@@ -104,14 +109,15 @@
     const cardH = 32 * vmin;
     const radius = (cardW / 2) / Math.tan(Math.PI / n);
 
-    cards.forEach((card, i) => {
-      const angle = i * step;
+    cards.forEach(({ card }, i) => {
+      const cardAngle = i * step;
       card.style.width = cardW + "px";
       card.style.height = cardH + "px";
       card.style.marginLeft = -(cardW / 2) + "px";
       card.style.marginTop = -(cardH / 2) + "px";
+      card.dataset.angle = cardAngle;
       card.style.transform =
-        "rotateY(" + angle + "deg) translateZ(" + radius + "px)";
+        "rotateY(" + cardAngle + "deg) translateZ(" + radius + "px)";
     });
   }
 
@@ -119,11 +125,11 @@
   window.addEventListener("resize", layout);
 
   let angle = 0;
-  const baseSpeed = 0.045;
+  const baseSpeed = 0.075;
   let speed = baseSpeed;
   let hovered = 0;
 
-  cards.forEach((card) => {
+  cards.forEach(({ card }) => {
     card.addEventListener("mouseenter", () => hovered++);
     card.addEventListener("mouseleave", () => hovered--);
   });
@@ -133,6 +139,13 @@
     speed += (target - speed) * 0.035;
     angle += speed;
     ring.style.transform = "rotateX(8deg) rotateY(" + angle + "deg)";
+
+    cards.forEach(({ card, shade }) => {
+      const facing = (parseFloat(card.dataset.angle) + angle) * (Math.PI / 180);
+      const depth = (1 - Math.cos(facing)) / 2;
+      shade.style.opacity = depth;
+    });
+
     requestAnimationFrame(tick);
   }
   tick();
