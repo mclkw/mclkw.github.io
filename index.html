@@ -27,7 +27,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    perspective: 160vmin;
   }
   .ring {
     position: relative;
@@ -56,15 +55,25 @@
   .card .shade {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0.15) 55%, rgba(0,0,0,0.5));
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.85) 50%, rgba(0,0,0,0.55) 78%, rgba(0,0,0,0) 100%);
     opacity: 0;
     pointer-events: none;
+    mix-blend-mode: multiply;
+    filter: blur(1.4vmin);
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+    mask-mode: alpha;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+    -webkit-mask-source-type: alpha;
   }
 </style>
 </head>
 <body>
 <div class="bg-glow"></div>
-<div class="scene">
+<div class="scene" id="scene">
   <div class="ring" id="ring"></div>
 </div>
 
@@ -74,6 +83,7 @@
     "HBD.png", "cans.png", "board.png", "cat.png", "bench.png"
   ];
 
+  const scene = document.getElementById("scene");
   const ring = document.getElementById("ring");
   const cards = images.map((name) => {
     const card = document.createElement("div");
@@ -83,6 +93,8 @@
     img.alt = name.replace(".png", "");
     const shade = document.createElement("div");
     shade.className = "shade";
+    shade.style.maskImage = "url(images/" + name + ")";
+    shade.style.webkitMaskImage = "url(images/" + name + ")";
     card.appendChild(img);
     card.appendChild(shade);
     ring.appendChild(card);
@@ -92,26 +104,72 @@
   const n = cards.length;
   const step = 360 / n;
 
-  function layout() {
-    const vmin = Math.min(window.innerWidth, window.innerHeight) / 100;
-    const cardW = 24 * vmin;
-    const cardH = 32 * vmin;
-    const radius = (cardW / 2) / Math.tan(Math.PI / n);
+  cards.forEach(({ card }, i) => {
+    card.dataset.angle = i * step;
+  });
 
-    cards.forEach(({ card }, i) => {
-      const cardAngle = i * step;
+  // theta: 0 = orbit runs left-right (wide windows), 90deg = orbit runs up-down (tall windows)
+  function thetaForAspect(aspect) {
+    const r = Math.log(aspect);
+    const limit = Math.log(1.8);
+    const t = Math.min(1, Math.max(0, (r + limit) / (2 * limit)));
+    const eased = t * t * (3 - 2 * t);
+    return (1 - eased) * 90;
+  }
+
+  let radius = 0;
+  let thetaRad = 0;
+  let cardW = 0;
+  let cardH = 0;
+
+  function layout() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const thetaDeg = thetaForAspect(vw / vh);
+    const theta = thetaDeg * (Math.PI / 180);
+    const cosT = Math.cos(theta), sinT = Math.sin(theta);
+
+    // work in arbitrary base units, then solve for the largest scale
+    // that keeps every orbit position (incl. hover growth) on-screen
+    const cardW0 = 340, cardH0 = 460;
+    const radius0 = (cardW0 / 2) / Math.tan(Math.PI / n);
+    const dist0 = radius0 * 3.2;
+
+    let maxX = 0, maxY = 0;
+    const samples = 72;
+    for (let i = 0; i < samples; i++) {
+      const phi = (i / samples) * 2 * Math.PI;
+      const x0 = radius0 * Math.sin(phi) * cosT;
+      const y0 = radius0 * Math.sin(phi) * sinT;
+      const z0 = radius0 * Math.cos(phi);
+      const scale = dist0 / (dist0 - z0);
+      const halfW = (cardW0 / 2) * scale * 1.2;
+      const halfH = (cardH0 / 2) * scale * 1.2;
+      maxX = Math.max(maxX, Math.abs(x0) * scale + halfW);
+      maxY = Math.max(maxY, Math.abs(y0) * scale + halfH);
+    }
+
+    const availW = vw * 0.47;
+    const availH = vh * 0.47;
+    const scaleFactor = Math.min(availW / maxX, availH / maxY);
+
+    cardW = cardW0 * scaleFactor;
+    cardH = cardH0 * scaleFactor;
+    radius = radius0 * scaleFactor;
+    thetaRad = theta;
+    scene.style.perspective = dist0 * scaleFactor + "px";
+
+    cards.forEach(({ card }) => {
       card.style.width = cardW + "px";
       card.style.height = cardH + "px";
       card.style.marginLeft = -(cardW / 2) + "px";
       card.style.marginTop = -(cardH / 2) + "px";
-      card.dataset.angle = cardAngle;
-      card.style.transform =
-        "rotateY(" + cardAngle + "deg) translateZ(" + radius + "px)";
     });
   }
 
   layout();
   window.addEventListener("resize", layout);
+  window.addEventListener("orientationchange", layout);
 
   let angle = 0;
   const baseSpeed = 0.075;
@@ -127,12 +185,24 @@
     const target = hovered > 0 ? 0 : baseSpeed;
     speed += (target - speed) * 0.035;
     angle += speed;
-    ring.style.transform = "rotateX(8deg) rotateY(" + angle + "deg)";
+
+    const cosT = Math.cos(thetaRad), sinT = Math.sin(thetaRad);
+    const poleX = -sinT, poleY = cosT;
 
     cards.forEach(({ card, shade }) => {
-      const facing = (parseFloat(card.dataset.angle) + angle) * (Math.PI / 180);
-      const depth = (1 - Math.cos(facing)) / 2;
-      shade.style.opacity = depth;
+      const phiDeg = parseFloat(card.dataset.angle) + angle;
+      const phi = phiDeg * (Math.PI / 180);
+
+      const x = radius * Math.sin(phi) * cosT;
+      const y = radius * Math.sin(phi) * sinT;
+      const z = radius * Math.cos(phi);
+
+      card.style.transform =
+        "translate3d(" + x + "px," + y + "px," + z + "px) rotate3d(" +
+        poleX + "," + poleY + ",0," + phiDeg + "deg)";
+
+      const depth = (1 - Math.cos(phi)) / 2;
+      shade.style.opacity = Math.pow(depth, 0.7);
     });
 
     requestAnimationFrame(tick);
