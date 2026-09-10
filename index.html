@@ -8,40 +8,134 @@
   html, body {
     height: 100%;
     margin: 0;
+    overflow: hidden;
+    background: #05070a;
   }
   body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: #e6edf3;
+  }
+  .bg-glow {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 55% at 50% 52%, rgba(90,110,140,0.18), transparent 70%);
+    pointer-events: none;
+  }
+  .scene {
+    position: fixed;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    background: #0d1117;
-    color: #e6edf3;
+    perspective: 160vmin;
   }
-  main {
-    text-align: center;
-    padding: 2rem;
+  .ring {
+    position: relative;
+    width: 1px;
+    height: 1px;
+    transform-style: preserve-3d;
+    will-change: transform;
   }
-  h1 {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
+  .card {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border-radius: 14px;
+    background: #10141a;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+    cursor: pointer;
   }
-  p {
+  .card img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transform: scale(1);
+    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), filter 0.7s ease;
+    filter: brightness(0.82) saturate(0.95);
+  }
+  .card:hover img {
+    transform: scale(1.2);
+    filter: brightness(1) saturate(1.1);
+  }
+  .label {
+    position: fixed;
+    top: 2rem;
+    left: 2rem;
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
     color: #8b949e;
-    margin: 0;
-  }
-  img {
-    max-width: 90vw;
-    max-height: 50vh;
-    margin-bottom: 1.5rem;
-    border-radius: 8px;
+    z-index: 5;
+    pointer-events: none;
   }
 </style>
 </head>
 <body>
-<main>
-  <img src="images/Weimar.png" alt="Weimar">
-  <h1>It's live 🎉</h1>
-  <p>welcome to LKW.fyi</p>
-</main>
+<div class="bg-glow"></div>
+<div class="label">LKW.fyi</div>
+<div class="scene">
+  <div class="ring" id="ring"></div>
+</div>
+
+<script>
+  const images = [
+    "expired.png", "well.png", "football.png", "fallen.png",
+    "HBD.png", "cans.png", "board.png", "cat.png", "bench.png"
+  ];
+
+  const ring = document.getElementById("ring");
+  const cards = images.map((name) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    const img = document.createElement("img");
+    img.src = "images/" + name;
+    img.alt = name.replace(".png", "");
+    card.appendChild(img);
+    ring.appendChild(card);
+    return card;
+  });
+
+  const n = cards.length;
+  const step = 360 / n;
+
+  function layout() {
+    const vmin = Math.min(window.innerWidth, window.innerHeight) / 100;
+    const cardW = 24 * vmin;
+    const cardH = 32 * vmin;
+    const radius = (cardW / 2) / Math.tan(Math.PI / n);
+
+    cards.forEach((card, i) => {
+      const angle = i * step;
+      card.style.width = cardW + "px";
+      card.style.height = cardH + "px";
+      card.style.marginLeft = -(cardW / 2) + "px";
+      card.style.marginTop = -(cardH / 2) + "px";
+      card.style.transform =
+        "rotateY(" + angle + "deg) translateZ(" + radius + "px)";
+    });
+  }
+
+  layout();
+  window.addEventListener("resize", layout);
+
+  let angle = 0;
+  const baseSpeed = 0.045;
+  let speed = baseSpeed;
+  let hovered = 0;
+
+  cards.forEach((card) => {
+    card.addEventListener("mouseenter", () => hovered++);
+    card.addEventListener("mouseleave", () => hovered--);
+  });
+
+  function tick() {
+    const target = hovered > 0 ? 0 : baseSpeed;
+    speed += (target - speed) * 0.035;
+    angle += speed;
+    ring.style.transform = "rotateX(8deg) rotateY(" + angle + "deg)";
+    requestAnimationFrame(tick);
+  }
+  tick();
+</script>
 </body>
 </html>
