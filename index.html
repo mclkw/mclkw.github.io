@@ -40,6 +40,8 @@
     top: 50%;
     left: 50%;
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
   .card img {
     display: block;
@@ -48,8 +50,11 @@
     object-fit: contain;
     transform: scale(1);
     transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
   }
-  .card:hover img {
+  .card.active img {
     transform: scale(1.2);
   }
   .card .shade {
@@ -177,8 +182,26 @@
   let hovered = 0;
 
   cards.forEach(({ card }) => {
-    card.addEventListener("mouseenter", () => hovered++);
-    card.addEventListener("mouseleave", () => hovered--);
+    const press = () => {
+      if (card.classList.contains("active")) return;
+      card.classList.add("active");
+      hovered++;
+    };
+    const release = () => {
+      if (!card.classList.contains("active")) return;
+      card.classList.remove("active");
+      hovered--;
+    };
+    // mouse: hover triggers it. touch/pen: only an actual press does.
+    card.addEventListener("pointerenter", (e) => {
+      if (e.pointerType === "mouse") press();
+    });
+    card.addEventListener("pointerleave", release);
+    card.addEventListener("pointerdown", (e) => {
+      if (e.pointerType !== "mouse") press();
+    });
+    card.addEventListener("pointerup", release);
+    card.addEventListener("pointercancel", release);
   });
 
   function tick() {
