@@ -181,6 +181,29 @@
       };
       wrap.addEventListener("mouseenter", function () { inst.hoverTarget = 1.45; });
       wrap.addEventListener("mouseleave", function () { inst.hoverTarget = 1; });
+
+      // touch: holding a finger down previews the enlarge (like hover),
+      // lifting it off counts as a tap - shown briefly before navigating
+      // away, same as the tap-delay pattern used for the menu/worklist.
+      var touchHolding = false;
+      wrap.addEventListener("touchstart", function () {
+        touchHolding = true;
+        inst.hoverTarget = 1.45;
+      }, { passive: true });
+      wrap.addEventListener("touchend", function (e) {
+        if (!touchHolding) return;
+        touchHolding = false;
+        e.preventDefault();
+        setTimeout(function () {
+          inst.hoverTarget = 1;
+          wrap.click();
+        }, 180);
+      });
+      wrap.addEventListener("touchcancel", function () {
+        touchHolding = false;
+        inst.hoverTarget = 1;
+      });
+
       instances.push(inst);
 
       // pieces drop in one at a time, like tetris pieces, from a spawn
