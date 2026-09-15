@@ -1,9 +1,5 @@
 (function () {
-  // sampled from the logo artwork: purple, red, blue, orange
-  var PALETTE = ["#894ea7", "#a7504e", "#4e76a7", "#a7804e"];
-  function randomColor() {
-    return PALETTE[Math.floor(Math.random() * PALETTE.length)];
-  }
+  var HIGHLIGHT_COLOR = "#00ff00"; // same chroma-key green as the index background
 
   document.addEventListener("DOMContentLoaded", function () {
     var menu = document.querySelector(".menu");
@@ -15,12 +11,12 @@
       var page = a.getAttribute("data-page");
       if (page === current) {
         a.classList.add("active");
-        a.style.color = randomColor();
+        a.style.color = HIGHLIGHT_COLOR;
       }
       if (page === "contact") {
         a.addEventListener("click", function () {
           a.classList.add("active");
-          a.style.color = randomColor();
+          a.style.color = HIGHLIGHT_COLOR;
           setTimeout(function () {
             a.classList.remove("active");
             a.style.color = "";
