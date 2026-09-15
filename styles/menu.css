@@ -1,0 +1,29 @@
+.menu {
+  position: fixed;
+  right: 5vmin;
+  bottom: 5vmin;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1em;
+  z-index: 900;
+}
+.menu a {
+  font-family: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 700;
+  text-transform: lowercase;
+  text-decoration: none;
+  color: #ffffff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+  font-size: clamp(1.5rem, 4vw, 2.75rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  transition: color 0.35s ease, transform 0.25s ease;
+  cursor: pointer;
+}
+.menu a:hover {
+  transform: translateX(-3px);
+}
+.menu a.active {
+  text-shadow: none;
+}
