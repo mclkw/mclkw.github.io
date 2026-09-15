@@ -1,11 +1,14 @@
 (function () {
-  var HIGHLIGHT_COLOR = "#00ff00"; // same chroma-key green as the index background
-
   document.addEventListener("DOMContentLoaded", function () {
-    var menu = document.querySelector(".menu");
-    if (!menu) return;
+    // there can be more than one nav.menu block on a page (e.g. the index
+    // page's top header menu and its separate bottom-right corner menu),
+    // so this works across all of them rather than assuming a single one.
+    var links = document.querySelectorAll(".menu a[data-page]");
+    if (!links.length) return;
     var current = document.body.getAttribute("data-page") || "";
-    var links = menu.querySelectorAll("a[data-page]");
+    // the index page redesign is all-black-on-white; other pages keep the
+    // chroma-key green highlight that matches their green-screen imagery.
+    var HIGHLIGHT_COLOR = current ? "#00ff00" : "#000000";
 
     links.forEach(function (a) {
       var page = a.getAttribute("data-page");
@@ -15,6 +18,18 @@
       }
       if (page === "contact") {
         a.addEventListener("click", function () {
+          a.classList.add("active");
+          a.style.color = HIGHLIGHT_COLOR;
+          setTimeout(function () {
+            a.classList.remove("active");
+            a.style.color = "";
+          }, 700);
+        });
+      }
+      // placeholder links (no destination yet) shouldn't jump/scroll the page
+      if (a.getAttribute("href") === "#") {
+        a.addEventListener("click", function (e) {
+          e.preventDefault();
           a.classList.add("active");
           a.style.color = HIGHLIGHT_COLOR;
           setTimeout(function () {
