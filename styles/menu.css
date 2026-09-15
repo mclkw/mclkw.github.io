@@ -28,7 +28,8 @@
   transition: color 0.35s ease, transform 0.25s ease;
   cursor: pointer;
 }
-.menu a:hover {
+.menu a:hover,
+.menu a.touch-hover {
   transform: translateX(-3px);
 }
 .menu a.active {
