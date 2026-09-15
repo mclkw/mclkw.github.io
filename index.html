@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LKW.fyi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles/menu.css">
 <style>
   html, body {
     height: 100%;
@@ -34,86 +38,137 @@
   }
 </style>
 </head>
-<body>
+<body data-page="">
 <div class="logo" id="logo">
-  <img src="images/logolila.png" alt="">
-  <img src="images/logoorange.png" alt="">
-  <img src="images/logoblau.png" alt="">
-  <img src="images/logorot.png" alt="">
+  <img src="/images/logolila.png" alt="">
+  <img src="/images/logoorange.png" alt="">
+  <img src="/images/logoblau.png" alt="">
+  <img src="/images/logorot.png" alt="">
 </div>
 
+<nav class="menu">
+  <a href="/work/" data-page="work">work</a>
+  <a href="/about/" data-page="about">about</a>
+  <a href="mailto:lea.wuertenberger@gmail.com" data-page="contact">contact</a>
+</nav>
+
+<script src="/bounce.js"></script>
+<script src="/menu.js"></script>
 <script>
-  const wrap = document.getElementById("logo");
-  const imgs = Array.from(wrap.querySelectorAll("img"));
-  let colorIndex = 0;
-  imgs[0].classList.add("visible");
+  (function () {
+    var wrap = document.getElementById("logo");
+    var imgs = Array.from(wrap.querySelectorAll("img"));
+    var colorIndex = 0;
+    imgs[0].classList.add("visible");
 
-  function setColor(i) {
-    imgs.forEach((img, idx) => img.classList.toggle("visible", idx === i));
-  }
-
-  function bounceColor() {
-    colorIndex = (colorIndex + 1) % imgs.length;
-    setColor(colorIndex);
-  }
-
-  let aspect = 0.5;
-  let logoW = 0, logoH = 0;
-
-  function applyAspectFrom(img) {
-    if (img.naturalWidth && img.naturalHeight) {
-      aspect = img.naturalHeight / img.naturalWidth;
-      layout();
+    function setColor(i) {
+      imgs.forEach(function (img, idx) { img.classList.toggle("visible", idx === i); });
     }
-  }
-  if (imgs[0].complete) applyAspectFrom(imgs[0]);
-  else imgs[0].addEventListener("load", () => applyAspectFrom(imgs[0]), { once: true });
+    function bounceColor() {
+      colorIndex = (colorIndex + 1) % imgs.length;
+      setColor(colorIndex);
+    }
 
-  let x = 40, y = 40;
-  const startAngle = (20 + Math.random() * 30) * (Math.PI / 180);
-  const signX = Math.random() < 0.5 ? -1 : 1;
-  const signY = Math.random() < 0.5 ? -1 : 1;
-  let vx = Math.cos(startAngle) * signX;
-  let vy = Math.sin(startAngle) * signY;
+    var aspect = 0.5, logoW = 0, logoH = 0;
+    function resizeLogo() {
+      logoW = window.innerWidth / 5;
+      logoH = logoW * aspect;
+      wrap.style.width = logoW + "px";
+      wrap.style.height = logoH + "px";
+    }
+    function applyAspectFrom(img) {
+      if (img.naturalWidth && img.naturalHeight) {
+        aspect = img.naturalHeight / img.naturalWidth;
+        resizeLogo();
+      }
+    }
+    if (imgs[0].complete) applyAspectFrom(imgs[0]);
+    else imgs[0].addEventListener("load", function () { applyAspectFrom(imgs[0]); }, { once: true });
 
-  function layout() {
-    logoW = window.innerWidth / 6;
-    logoH = logoW * aspect;
-    wrap.style.width = logoW + "px";
-    wrap.style.height = logoH + "px";
+    resizeLogo();
+    window.addEventListener("resize", resizeLogo);
+    window.addEventListener("orientationchange", resizeLogo);
 
-    const maxX = Math.max(0, window.innerWidth - logoW);
-    const maxY = Math.max(0, window.innerHeight - logoH);
-    x = Math.min(Math.max(0, x), maxX);
-    y = Math.min(Math.max(0, y), maxY);
-  }
+    function size() { return { w: logoW, h: logoH }; }
+    function bounds() {
+      return {
+        minX: 0, minY: 0,
+        maxX: Math.max(0, window.innerWidth - logoW),
+        maxY: Math.max(0, window.innerHeight - logoH)
+      };
+    }
+    function speed() {
+      return Math.min(window.innerWidth, window.innerHeight) * 0.32;
+    }
 
-  layout();
-  window.addEventListener("resize", layout);
-  window.addEventListener("orientationchange", layout);
+    var liveX = 40, liveY = 40, liveVx = 0, liveVy = 0;
+    function applyFrame(x, y, vx, vy) {
+      liveX = x; liveY = y; liveVx = vx; liveVy = vy;
+      wrap.style.transform = "translate(" + x + "px," + y + "px)";
+    }
 
-  let last = performance.now();
-  function tick(now) {
-    const dt = Math.min(0.05, (now - last) / 1000);
-    last = now;
+    var stopFn = null;
+    function startFreeRoam(x, y, vx, vy) {
+      stopFn = window.startBounce({
+        x: x, y: y, vx: vx, vy: vy,
+        size: size, bounds: bounds, speed: speed,
+        onBounce: bounceColor,
+        onFrame: applyFrame,
+        duration: null
+      });
+    }
 
-    const speed = Math.min(window.innerWidth, window.innerHeight) * 0.32;
-    x += vx * speed * dt;
-    y += vy * speed * dt;
+    var startX = 40, startY = 40, startVx, startVy;
+    var handoff = null;
+    try {
+      var raw = sessionStorage.getItem("lkw_logo_state");
+      if (raw) {
+        sessionStorage.removeItem("lkw_logo_state");
+        handoff = JSON.parse(raw);
+      }
+    } catch (e) {}
 
-    const maxX = Math.max(0, window.innerWidth - logoW);
-    const maxY = Math.max(0, window.innerHeight - logoH);
+    if (handoff) {
+      var b0 = bounds();
+      var sx = handoff.vw ? window.innerWidth / handoff.vw : 1;
+      var sy = handoff.vh ? window.innerHeight / handoff.vh : 1;
+      startX = Math.min(Math.max(0, handoff.x * sx), b0.maxX);
+      startY = Math.min(Math.max(0, handoff.y * sy), b0.maxY);
+      startVx = handoff.vx;
+      startVy = handoff.vy;
+    } else {
+      var startAngle = (20 + Math.random() * 30) * (Math.PI / 180);
+      startVx = Math.cos(startAngle) * (Math.random() < 0.5 ? -1 : 1);
+      startVy = Math.sin(startAngle) * (Math.random() < 0.5 ? -1 : 1);
+    }
 
-    if (x <= 0) { x = 0; vx = Math.abs(vx); bounceColor(); }
-    else if (x >= maxX) { x = maxX; vx = -Math.abs(vx); bounceColor(); }
+    applyFrame(startX, startY, startVx, startVy);
+    startFreeRoam(startX, startY, startVx, startVy);
 
-    if (y <= 0) { y = 0; vy = Math.abs(vy); bounceColor(); }
-    else if (y >= maxY) { y = maxY; vy = -Math.abs(vy); bounceColor(); }
-
-    wrap.style.transform = "translate(" + x + "px," + y + "px)";
-    requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
+    document.querySelectorAll('.menu a[data-page="work"], .menu a[data-page="about"]').forEach(function (a) {
+      a.addEventListener("click", function (e) {
+        e.preventDefault();
+        var href = a.getAttribute("href");
+        if (stopFn) stopFn();
+        window.startBounce({
+          x: liveX, y: liveY, vx: liveVx, vy: liveVy,
+          size: size, bounds: bounds, speed: speed,
+          onBounce: bounceColor,
+          onFrame: applyFrame,
+          duration: 550,
+          onDone: function (final) {
+            try {
+              sessionStorage.setItem("lkw_logo_state", JSON.stringify({
+                x: final.x, y: final.y, vx: final.vx, vy: final.vy,
+                vw: window.innerWidth, vh: window.innerHeight
+              }));
+            } catch (err) {}
+            window.location.href = href;
+          }
+        });
+      });
+    });
+  })();
 </script>
 </body>
 </html>
