@@ -10,7 +10,67 @@
     height: 100%;
     margin: 0;
     overflow: hidden;
-    background: #00ff00;
+    background: #ffffff;
+    color: #000000;
+  }
+  .site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.4vmin 2.5vmin;
+    border-bottom: 2px solid #000000;
+    background: #ffffff;
+    z-index: 900;
+  }
+  .brand {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 400;
+    text-transform: lowercase;
+    color: #000000;
+    text-shadow: none;
+    font-size: clamp(0.95rem, 1.6vw, 1.35rem);
+    letter-spacing: -0.01em;
+  }
+  .site-header .menu {
+    position: static;
+    flex-direction: row;
+    align-items: center;
+    gap: 1.5em;
+  }
+  .site-header .menu a {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 400;
+    color: #000000;
+    text-shadow: none;
+    font-size: clamp(0.95rem, 1.6vw, 1.35rem);
+    letter-spacing: -0.01em;
+  }
+  .site-header .menu a:hover,
+  .site-header .menu a.touch-hover,
+  .site-header .menu a.active {
+    font-family: 'Arial Black', Arial, sans-serif;
+    font-weight: 900;
+    color: #000000;
+    text-shadow: none;
+  }
+  .corner-menu a {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 400;
+    color: #000000;
+    text-shadow: none;
+  }
+  .corner-menu a:hover,
+  .corner-menu a.touch-hover,
+  .corner-menu a.active {
+    font-family: 'Arial Black', Arial, sans-serif;
+    font-weight: 900;
+    color: #000000;
+    text-shadow: none;
   }
   .logo {
     position: fixed;
@@ -70,10 +130,19 @@
   <img src="/images/logorot.png" alt="">
 </div>
 
-<nav class="menu">
-  <a href="/work/" data-page="work">work</a>
-  <a href="/about/" data-page="about">about</a>
-  <a href="mailto:lea.wuertenberger@gmail.com" data-page="contact">contact</a>
+<header class="site-header">
+  <span class="brand">lea kiri wyrger</span>
+  <nav class="menu">
+    <a href="/work/" data-page="work">work</a>
+    <a href="/about/" data-page="about">about</a>
+    <a href="mailto:lea.wuertenberger@gmail.com" data-page="contact">contact</a>
+  </nav>
+</header>
+
+<nav class="menu corner-menu" id="cornerMenu">
+  <a href="#" data-page="art">art</a>
+  <a href="#" data-page="research">research</a>
+  <a href="#" data-page="other">other</a>
 </nav>
 
 <script src="/bounce.js"></script>
@@ -94,12 +163,19 @@
       setColor(colorIndex);
     }
 
+    var headerEl = document.querySelector(".site-header");
+    var lineY = 0;
+    function updateLineY() {
+      lineY = headerEl ? headerEl.getBoundingClientRect().height : 0;
+    }
+
     var aspect = 0.5, logoW = 0, logoH = 0;
     function resizeLogo() {
       logoW = window.innerWidth / 5;
       logoH = logoW * aspect;
       wrap.style.width = logoW + "px";
       wrap.style.height = logoH + "px";
+      updateLineY();
     }
     function applyAspectFrom(img) {
       if (img.naturalWidth && img.naturalHeight) {
@@ -117,7 +193,7 @@
     function size() { return { w: logoW, h: logoH }; }
     function bounds() {
       return {
-        minX: 0, minY: 0,
+        minX: 0, minY: lineY,
         maxX: Math.max(0, window.innerWidth - logoW),
         maxY: Math.max(0, window.innerHeight - logoH)
       };
@@ -153,15 +229,17 @@
       }
     } catch (e) {}
 
+    var b0 = bounds();
     if (handoff) {
-      var b0 = bounds();
       var sx = handoff.vw ? window.innerWidth / handoff.vw : 1;
       var sy = handoff.vh ? window.innerHeight / handoff.vh : 1;
-      startX = Math.min(Math.max(0, handoff.x * sx), b0.maxX);
-      startY = Math.min(Math.max(0, handoff.y * sy), b0.maxY);
+      startX = Math.min(Math.max(b0.minX, handoff.x * sx), b0.maxX);
+      startY = Math.min(Math.max(b0.minY, handoff.y * sy), b0.maxY);
       startVx = handoff.vx;
       startVy = handoff.vy;
     } else {
+      startX = Math.min(Math.max(b0.minX, startX), b0.maxX);
+      startY = Math.min(Math.max(b0.minY, startY), b0.maxY);
       var startAngle = (20 + Math.random() * 30) * (Math.PI / 180);
       startVx = Math.cos(startAngle) * (Math.random() < 0.5 ? -1 : 1);
       startVy = Math.sin(startAngle) * (Math.random() < 0.5 ? -1 : 1);
