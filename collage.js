@@ -3,6 +3,18 @@
     "expired.png", "well.png", "football.png", "fallen.png",
     "HBD.png", "cans.png", "board.png", "cat.png", "bench.png"
   ];
+  // where each image links to - whichever subpage actually features it
+  var LINKS = {
+    "expired.png": "/commoning-death/",
+    "well.png": "/commoning-death/",
+    "football.png": "/commoning-death/",
+    "fallen.png": "/commoning-death/",
+    "HBD.png": "/commoning-death/",
+    "cans.png": "/commoning-death/",
+    "board.png": "/commoning-death/",
+    "cat.png": "/commoning-death/",
+    "bench.png": "/commoning-death/"
+  };
   var RAYS = 64;
   var ALPHA_THRESH = 10;
 
@@ -141,7 +153,8 @@
     }
 
     function createInstance(name, profile, index, imgEl) {
-      var wrap = document.createElement("div");
+      var wrap = document.createElement("a");
+      wrap.href = LINKS[name] || "#";
       wrap.className = "piece";
       wrap.style.opacity = "0";
       wrap.style.width = "1px";
