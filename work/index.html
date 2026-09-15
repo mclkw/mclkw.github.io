@@ -10,7 +10,7 @@
     height: 100%;
     margin: 0;
     overflow: hidden;
-    background: #d7e7fb;
+    background: #453f39;
   }
   #cornerlogo {
     position: fixed;
@@ -20,10 +20,143 @@
     display: block;
     cursor: pointer;
   }
+  .menu a {
+    text-shadow: none;
+  }
+  .worklist-wrap {
+    position: fixed;
+    top: 2.5vmin;
+    left: 2.5vmin;
+    width: 64vw;
+    height: calc(100vh - 5vmin);
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    z-index: 900;
+  }
+  /* custom scrollbar - not relying on native scrollbar styling, which
+     several browsers (notably Safari) won't reliably keep always-visible
+     or apply custom colors to */
+  .worklist-track {
+    position: relative;
+    flex: 0 0 14px;
+    width: 14px;
+    margin-top: 18px;
+    height: calc(100% - 18px);
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.25);
+    cursor: pointer;
+  }
+  .worklist-thumb {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 7px;
+    background: #00ff00;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.45);
+  }
+  .worklist {
+    flex: 1 1 auto;
+    min-width: 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.15em;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 18px 18px 18px 6px;
+    scrollbar-width: none;
+  }
+  .worklist::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+  .worklist a {
+    font-family: 'Euripides', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 700;
+    text-transform: lowercase;
+    text-decoration: none;
+    color: #ffffff;
+    text-shadow: none;
+    font-size: clamp(2rem, 5.5vw, 3.75rem);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    transition: color 0.25s ease, transform 0.25s ease, text-shadow 0.25s ease;
+    cursor: pointer;
+    max-width: 100%;
+  }
+  .worklist a:hover {
+    color: #00ff00;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    transform: translateX(3px);
+  }
+  .worklist .tag-wrap {
+    white-space: nowrap;
+  }
+  .worklist .tag {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 0.5em;
+    padding: 0.2em 0.65em;
+    border-radius: 999px;
+    background: #00ff00;
+    color: #1a1a1a;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: clamp(0.65rem, 0.9vw, 0.85rem);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .worklist a:hover .tag {
+    opacity: 1;
+  }
+  .approach {
+    position: fixed;
+    top: 2.5vmin;
+    right: 5vmin;
+    width: 28vw;
+    min-width: 220px;
+    max-height: 60vh;
+    overflow-y: auto;
+    z-index: 800;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+    line-height: 1.6;
+    color: #e8e2da;
+  }
 </style>
 </head>
 <body data-page="work" data-corner="bottom-left">
 <img id="cornerlogo" src="/images/logogruen.png" alt="back to home">
+
+<div class="worklist-wrap">
+  <div class="worklist-track" id="worklistTrack">
+    <div class="worklist-thumb" id="worklistThumb"></div>
+  </div>
+  <nav class="worklist" id="worklist">
+    <a href="/commoning-death/">commoning <span class="tag-wrap">death<span class="tag">study</span></span></a>
+    <a href="#">steel on <span class="tag-wrap">canvas<span class="tag">metalwork</span></span></a>
+    <a href="#">inflatable <span class="tag-wrap">prototype I<span class="tag">prototype</span></span></a>
+    <a href="#">pigeon <span class="tag-wrap">oracle<span class="tag">public affection</span></span></a>
+    <a href="#">posthuman <span class="tag-wrap">fragments<span class="tag">costume</span></span></a>
+    <a href="#">unknown return to <span class="tag-wrap">player<span class="tag">game installation</span></span></a>
+    <a href="#">istanbul ghetto club: <span class="tag-wrap">masks<span class="tag">costume</span></span></a>
+    <a href="#">one day all <span class="tag-wrap">dreams<span class="tag">performance &amp; costume</span></span></a>
+    <a href="#">amateur home <span class="tag-wrap">making<span class="tag">zine</span></span></a>
+    <a href="#">die funzel. halbjahresschrift für prätentiöse <span class="tag-wrap">studien<span class="tag">magazine</span></span></a>
+  </nav>
+</div>
+
+<div class="approach">
+  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+  <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+</div>
 
 <nav class="menu">
   <a href="/work/" data-page="work">work</a>
@@ -34,5 +167,59 @@
 <script src="/bounce.js"></script>
 <script src="/menu.js"></script>
 <script src="/corner-logo.js"></script>
+<script>
+  (function () {
+    var list = document.getElementById("worklist");
+    var track = document.getElementById("worklistTrack");
+    var thumb = document.getElementById("worklistThumb");
+    if (!list || !track || !thumb) return;
+
+    function update() {
+      var scrollable = list.scrollHeight - list.clientHeight;
+      var trackH = track.clientHeight;
+      var ratioVisible = Math.min(1, list.clientHeight / list.scrollHeight);
+      var thumbH = Math.min(trackH, Math.max(24, trackH * ratioVisible));
+      thumb.style.height = thumbH + "px";
+      var maxThumbTop = trackH - thumbH;
+      var scrollRatio = scrollable > 0 ? list.scrollTop / scrollable : 0;
+      thumb.style.top = (scrollRatio * maxThumbTop) + "px";
+    }
+
+    list.addEventListener("scroll", update);
+    window.addEventListener("resize", update);
+    update();
+
+    var dragging = false, startY = 0, startScroll = 0;
+    thumb.addEventListener("mousedown", function (e) {
+      dragging = true;
+      startY = e.clientY;
+      startScroll = list.scrollTop;
+      e.preventDefault();
+    });
+    window.addEventListener("mousemove", function (e) {
+      if (!dragging) return;
+      var trackH = track.clientHeight;
+      var thumbH = thumb.offsetHeight;
+      var maxThumbTop = trackH - thumbH;
+      var scrollable = list.scrollHeight - list.clientHeight;
+      if (maxThumbTop <= 0 || scrollable <= 0) return;
+      var deltaScroll = ((e.clientY - startY) / maxThumbTop) * scrollable;
+      list.scrollTop = startScroll + deltaScroll;
+    });
+    window.addEventListener("mouseup", function () { dragging = false; });
+
+    track.addEventListener("mousedown", function (e) {
+      if (e.target === thumb) return;
+      var rect = track.getBoundingClientRect();
+      var clickY = e.clientY - rect.top;
+      var thumbH = thumb.offsetHeight;
+      var maxThumbTop = track.clientHeight - thumbH;
+      var scrollable = list.scrollHeight - list.clientHeight;
+      if (maxThumbTop <= 0 || scrollable <= 0) return;
+      var targetTop = Math.min(Math.max(0, clickY - thumbH / 2), maxThumbTop);
+      list.scrollTop = (targetTop / maxThumbTop) * scrollable;
+    });
+  })();
+</script>
 </body>
 </html>
