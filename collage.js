@@ -125,6 +125,19 @@
 
     function vmin() { return Math.min(window.innerWidth, window.innerHeight); }
 
+    // the bottom-right corner menu (art / research / other) is a solid
+    // obstacle for falling pieces, not just a floor/wall - read its live
+    // rect each tick (cheap for one small fixed element) and pad it well
+    // clear of the text so pieces never actually touch it.
+    var cornerMenuEl = document.getElementById("cornerMenu");
+    function cornerMenuRect() {
+      if (!cornerMenuEl) return null;
+      var r = cornerMenuEl.getBoundingClientRect();
+      if (!r.width || !r.height) return null;
+      var pad = Math.max(24, vmin() * 0.035);
+      return { left: r.left - pad, top: r.top - pad, right: r.right + pad, bottom: r.bottom + pad };
+    }
+
     var instances = [];
 
     function scaleFactorOf(inst) {
@@ -240,6 +253,35 @@
     var SLEEP_FRAMES = 18;
     var WAKE_DEFICIT = 0.15;
 
+    // pushes a piece's centroid out of an axis-aligned rectangle obstacle
+    // (the corner menu) along whichever direction gets it out fastest -
+    // the nearest point on the rect's boundary if the centroid is outside,
+    // or the nearest edge if it somehow ended up inside.
+    function pushOutOfRect(a, rect) {
+      var cx = a.x, cy = a.y;
+      var insideX = cx > rect.left && cx < rect.right;
+      var insideY = cy > rect.top && cy < rect.bottom;
+      var theta, dist;
+      if (insideX && insideY) {
+        var dl = cx - rect.left, dr = rect.right - cx, dt = cy - rect.top, db = rect.bottom - cy;
+        var m = Math.min(dl, dr, dt, db);
+        theta = m === dl ? Math.PI : m === dr ? 0 : m === dt ? -Math.PI / 2 : Math.PI / 2;
+        dist = 0;
+      } else {
+        var closestX = Math.min(Math.max(cx, rect.left), rect.right);
+        var closestY = Math.min(Math.max(cy, rect.top), rect.bottom);
+        var ddx = cx - closestX, ddy = cy - closestY;
+        dist = Math.hypot(ddx, ddy) || 0.001;
+        theta = Math.atan2(ddy, ddx);
+      }
+      var ext = facingExtent(a, theta);
+      if (dist < ext) {
+        var push = ext - dist;
+        a.x += Math.cos(theta) * push;
+        a.y += Math.sin(theta) * push;
+      }
+    }
+
     function simTick() {
       var vm = vmin();
       var gravity = vm * 0.0016;
@@ -247,6 +289,7 @@
       var gap = Math.max(12, vm * 0.016);
       var floorY = window.innerHeight;
       var leftWall = 0, rightWall = window.innerWidth;
+      var cornerRect = cornerMenuRect();
       var n = instances.length;
       var i, a;
 
@@ -295,6 +338,7 @@
             a.x = rightWall - rightExt;
             if (a.vx > 0) a.vx = 0;
           }
+          if (cornerRect) pushOutOfRect(a, cornerRect);
 
           for (var j = i + 1; j < n; j++) {
             var b = instances[j];
@@ -318,6 +362,9 @@
               }
             }
           }
+          // re-check after the pairwise pass too, in case a neighbor's
+          // correction just nudged this piece back into the menu's rect.
+          if (cornerRect) pushOutOfRect(a, cornerRect);
         }
       }
 
