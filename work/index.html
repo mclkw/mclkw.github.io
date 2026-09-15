@@ -89,7 +89,8 @@
     cursor: pointer;
     max-width: 100%;
   }
-  .worklist a:hover {
+  .worklist a:hover,
+  .worklist a.touch-hover {
     color: #00ff00;
     text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
     transform: translateX(3px);
@@ -113,7 +114,8 @@
     opacity: 0;
     transition: opacity 0.25s ease;
   }
-  .worklist a:hover .tag {
+  .worklist a:hover .tag,
+  .worklist a.touch-hover .tag {
     opacity: 1;
   }
   .approach {
@@ -129,6 +131,25 @@
     font-size: clamp(0.85rem, 1.1vw, 1.05rem);
     line-height: 1.6;
     color: #e8e2da;
+  }
+
+  /* portrait: stack the description above the title list instead of
+     beside it, both spanning the full width except a reserved strip on
+     the right matching the menu's own footprint (kept up to date by JS
+     via --menu-w, since the menu's rendered width depends on its font). */
+  @media (orientation: portrait) {
+    .approach {
+      left: 2.5vmin;
+      right: auto;
+      width: calc(100vw - var(--menu-w, 30vw));
+      min-width: 0;
+      max-height: 22vh;
+    }
+    .worklist-wrap {
+      top: calc(22vh + 5vmin);
+      width: calc(100vw - var(--menu-w, 30vw));
+      height: calc(100vh - 22vh - 7.5vmin);
+    }
   }
 </style>
 </head>
@@ -168,6 +189,26 @@
 <script src="/menu.js"></script>
 <script src="/corner-logo.js"></script>
 <script>
+  (function () {
+    // keep --menu-w in sync with the menu's actual rendered width, so the
+    // portrait layout can reserve exactly that much space on the right
+    // instead of guessing a fixed value.
+    var menuEl = document.querySelector(".menu");
+    function updateMenuWidthVar() {
+      if (!menuEl) return;
+      var vmin = Math.min(window.innerWidth, window.innerHeight);
+      var rect = menuEl.getBoundingClientRect();
+      var reserved = rect.width + vmin * 0.05 + vmin * 0.03;
+      document.documentElement.style.setProperty("--menu-w", reserved + "px");
+    }
+    updateMenuWidthVar();
+    window.addEventListener("resize", updateMenuWidthVar);
+    window.addEventListener("orientationchange", updateMenuWidthVar);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(updateMenuWidthVar);
+    }
+  })();
+
   (function () {
     var list = document.getElementById("worklist");
     var track = document.getElementById("worklistTrack");
