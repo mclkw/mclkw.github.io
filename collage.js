@@ -140,15 +140,18 @@
       inst.el.style.transform = "translate(" + left + "px," + top + "px)";
     }
 
-    function createInstance(name, profile, index) {
+    function createInstance(name, profile, index, imgEl) {
       var wrap = document.createElement("div");
       wrap.className = "piece";
       wrap.style.opacity = "0";
       wrap.style.width = "1px";
       wrap.style.height = "1px";
       wrap.style.pointerEvents = "none";
-      var imgEl = document.createElement("img");
-      imgEl.src = "/images/" + name;
+      // reuse the already-loaded/decoded image used for shape analysis,
+      // rather than creating a second <img> that would need its own
+      // decode - painting a filter (drop-shadow) on an image before the
+      // browser has finished decoding it can show as a plain rectangle
+      // until the next repaint (e.g. the one hover triggers).
       imgEl.alt = name.replace(".png", "");
       imgEl.draggable = false;
       wrap.appendChild(imgEl);
@@ -310,8 +313,13 @@
       return new Promise(function (resolve) {
         var img = new Image();
         img.onload = function () {
-          analyzeImage(img).then(function (profile) {
-            resolve({ name: name, profile: profile });
+          // wait for a full decode (not just onload) before this image is
+          // ever painted with a filter, so it's never shown mid-decode
+          var decoded = img.decode ? img.decode().catch(function () {}) : Promise.resolve();
+          decoded.then(function () {
+            analyzeImage(img).then(function (profile) {
+              resolve({ name: name, profile: profile, img: img });
+            });
           });
         };
         img.onerror = function () { resolve(null); };
@@ -319,7 +327,7 @@
       });
     })).then(function (results) {
       results.filter(Boolean).forEach(function (r, idx) {
-        createInstance(r.name, r.profile, idx);
+        createInstance(r.name, r.profile, idx, r.img);
       });
       requestAnimationFrame(simTick);
     });
