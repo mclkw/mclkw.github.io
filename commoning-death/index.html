@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LKW.fyi</title>
+<title>LKW.fyi — commoning death</title>
+<link rel="stylesheet" href="/styles/menu.css">
 <style>
   html, body {
     height: 100%;
@@ -20,7 +21,7 @@
     inset: 0;
     width: 100vw;
     height: 100vh;
-    background-image: url(images/spraypaint.jpg);
+    background-image: url(/images/spraypaint.jpg);
     background-size: 100% 100%;
     background-repeat: no-repeat;
     background-position: center;
@@ -84,15 +85,38 @@
     -webkit-mask-size: contain;
     -webkit-mask-source-type: alpha;
   }
+  #cornerlogo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    display: block;
+    cursor: pointer;
+  }
+  .menu a {
+    color: #00ff00;
+    text-shadow: none;
+  }
 </style>
 </head>
-<body>
+<body data-page="" data-corner="bottom-left">
+<img id="cornerlogo" src="/images/logogruen.png" alt="back to home">
+
+<nav class="menu">
+  <a href="/work/" data-page="work">work</a>
+  <a href="/about/" data-page="about">about</a>
+  <a href="mailto:lea.wuertenberger@gmail.com" data-page="contact">contact</a>
+</nav>
+
 <div class="bg-image"></div>
 <div class="bg-glow"></div>
 <div class="scene" id="scene">
   <div class="ring" id="ring"></div>
 </div>
 
+<script src="/bounce.js"></script>
+<script src="/menu.js"></script>
+<script src="/corner-logo.js"></script>
 <script>
   const images = [
     "expired.png", "well.png", "football.png", "fallen.png",
@@ -105,12 +129,12 @@
     const card = document.createElement("div");
     card.className = "card";
     const img = document.createElement("img");
-    img.src = "images/" + name;
+    img.src = "/images/" + name;
     img.alt = name.replace(".png", "");
     const shade = document.createElement("div");
     shade.className = "shade";
-    shade.style.maskImage = "url(images/" + name + ")";
-    shade.style.webkitMaskImage = "url(images/" + name + ")";
+    shade.style.maskImage = "url(/images/" + name + ")";
+    shade.style.webkitMaskImage = "url(/images/" + name + ")";
     card.appendChild(img);
     card.appendChild(shade);
     ring.appendChild(card);
