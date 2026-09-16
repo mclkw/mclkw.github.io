@@ -176,21 +176,22 @@
       top: 50%;
       height: 2px;
       background: #000000;
+      transform: translateY(-50%);
     }
-    .approach-fold::after {
-      content: "";
+    /* the chevron sits exactly centered on the line, same color and same
+       2px stroke weight as the line itself, so where they cross it just
+       reads as one continuous mark instead of two separate shapes. */
+    .approach-fold .chevron {
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 0;
-      height: 0;
-      border-left: 5px solid transparent;
-      border-right: 5px solid transparent;
-      border-top: 6px solid #000000;
-      transform: translate(-50%, -10%);
+      width: 14px;
+      height: 14px;
+      transform: translate(-50%, -50%);
+      transition: transform 0.25s ease;
     }
-    .approach.expanded .approach-fold::after {
-      transform: translate(-50%, -90%) rotate(180deg);
+    .approach.expanded .approach-fold .chevron {
+      transform: translate(-50%, -50%) rotate(180deg);
     }
     .worklist-wrap {
       top: calc(var(--header-h, 60px) + var(--approach-h, 3.2em) + 5vmin);
@@ -234,10 +235,14 @@
   </nav>
 </div>
 
-<div class="approach" id="approach">
+<div class="approach expanded" id="approach">
   <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
   <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-  <button type="button" class="approach-fold" id="approachFold" aria-expanded="false" aria-label="unfold description"></button>
+  <button type="button" class="approach-fold" id="approachFold" aria-expanded="true" aria-label="fold description">
+    <svg class="chevron" viewBox="0 0 14 14" aria-hidden="true">
+      <path d="M4 5 L7 9 L10 5" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
 </div>
 
 <nav class="menu corner-menu" id="sortMenu">

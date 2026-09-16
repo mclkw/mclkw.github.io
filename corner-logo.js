@@ -24,7 +24,11 @@
     }
 
     function size() {
-      var w = window.innerWidth / 5;
+      // same portrait/mobile adjustment as the index page's logo - scaling
+      // purely off width reads as too small once the window is tall and
+      // narrow, so it gets a bigger share of that (smaller) width there.
+      var portrait = window.innerHeight > window.innerWidth;
+      var w = window.innerWidth / (portrait ? 2.4 : 5);
       var ratio = (el.naturalWidth && el.naturalHeight) ? el.naturalHeight / el.naturalWidth : 0.5;
       return { w: w, h: w * ratio };
     }

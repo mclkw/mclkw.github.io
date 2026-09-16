@@ -138,7 +138,12 @@
 
     var aspect = 0.5, logoW = 0, logoH = 0;
     function resizeLogo() {
-      logoW = window.innerWidth / 5;
+      // scaling purely off width makes the logo feel too small once the
+      // window gets tall and narrow (portrait/mobile) - give it a bigger
+      // share of the (now much smaller) width there instead of staying
+      // pinned to the same 1/5 ratio landscape uses.
+      var portrait = window.innerHeight > window.innerWidth;
+      logoW = window.innerWidth / (portrait ? 2.4 : 5);
       logoH = logoW * aspect;
       wrap.style.width = logoW + "px";
       wrap.style.height = logoH + "px";
