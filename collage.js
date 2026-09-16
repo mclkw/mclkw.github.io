@@ -11,9 +11,9 @@
   ];
   // where each image links to - whichever subpage actually features it
   var LINKS = {
-    "expired.png": "/commoning-death/",
-    "well.png": "/commoning-death/",
-    "football.png": "/commoning-death/"
+    "expired.png": "/commoning-grief/",
+    "well.png": "/commoning-grief/",
+    "football.png": "/commoning-grief/"
   };
   // which corner-menu filter category each image belongs to
   var CATEGORIES = {
