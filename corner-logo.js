@@ -5,6 +5,24 @@
     var corner = document.body.getAttribute("data-corner") || "top-left";
     var currentPage = document.body.getAttribute("data-page") || "";
 
+    // pages that don't hardcode a specific corner-logo color (the
+    // per-project subpages) get a random one of the four, picked fresh
+    // each visit - same roaming/bounce mechanics either way, just a
+    // different color. must happen before the load-check below.
+    if (el.hasAttribute("data-random-logo") && !el.getAttribute("src")) {
+      var colors = ["logolila.png", "logoorange.png", "logoblau.png", "logorot.png"];
+      el.src = "/images/" + colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    // pages with the new white/black site header have a horizontal line
+    // across the top - the roaming logo bounces off that line's bottom
+    // edge instead of the bare viewport edge. pages without one (like the
+    // commoning-death project page) fall back to 0, unchanged.
+    var headerEl = document.querySelector(".site-header");
+    function topBound() {
+      return headerEl ? headerEl.getBoundingClientRect().height : 0;
+    }
+
     function size() {
       var w = window.innerWidth / 5;
       var ratio = (el.naturalWidth && el.naturalHeight) ? el.naturalHeight / el.naturalWidth : 0.5;
@@ -13,7 +31,7 @@
     function bounds() {
       var s = size();
       return {
-        minX: 0, minY: 0,
+        minX: 0, minY: topBound(),
         maxX: Math.max(0, window.innerWidth - s.w),
         maxY: Math.max(0, window.innerHeight - s.h)
       };
@@ -81,7 +99,10 @@
       if (handoff) {
         var sx = handoff.vw ? window.innerWidth / handoff.vw : 1;
         var sy = handoff.vh ? window.innerHeight / handoff.vh : 1;
-        startArrival(handoff.x * sx, handoff.y * sy, handoff.vx, handoff.vy);
+        var b = bounds();
+        var hx = Math.min(Math.max(b.minX, handoff.x * sx), b.maxX);
+        var hy = Math.min(Math.max(b.minY, handoff.y * sy), b.maxY);
+        startArrival(hx, hy, handoff.vx, handoff.vy);
       } else {
         // fresh/direct visit: no handoff position to continue from, so
         // start it roaming from a random spot rather than already-arrived

@@ -1,0 +1,86 @@
+/* shared white/black/Arial site chrome (index, work, about) - the top
+   horizontal line is both the header's bottom border and the bounce
+   boundary the corner/roaming logos use instead of the viewport edge. */
+html, body {
+  background: #ffffff;
+  color: #000000;
+}
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.4vmin 2.5vmin;
+  border-bottom: 2px solid #000000;
+  background: #ffffff;
+  z-index: 900;
+}
+.brand {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 400;
+  text-transform: lowercase;
+  color: #000000;
+  text-shadow: none;
+  font-size: clamp(0.95rem, 1.6vw, 1.35rem);
+  letter-spacing: -0.01em;
+}
+.site-header .menu {
+  position: static;
+  flex-direction: row;
+  align-items: center;
+  gap: 1.5em;
+}
+.site-header .menu a {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 400;
+  color: #000000;
+  text-shadow: none;
+  font-size: clamp(0.95rem, 1.6vw, 1.35rem);
+  letter-spacing: -0.01em;
+}
+.site-header .menu a:hover,
+.site-header .menu a.touch-hover,
+.site-header .menu a.active {
+  font-family: 'Arial Black', Arial, sans-serif;
+  font-weight: 900;
+  color: #000000;
+  text-shadow: none;
+}
+/* the bottom-right corner menu - the index page's category filter, the
+   work page's sort-order toggle - shares this same look. */
+.corner-menu a {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 400;
+  color: #000000;
+  text-shadow: none;
+}
+.corner-menu a:hover,
+.corner-menu a.touch-hover,
+.corner-menu a.active {
+  font-family: 'Arial Black', Arial, sans-serif;
+  font-weight: 900;
+  color: #000000;
+  text-shadow: none;
+}
+/* the static work-title label on each project subpage, bottom-right, same
+   spot and font size as the corner-menu filters - not a link, just a
+   label, so no hover state. */
+.corner-title {
+  position: fixed;
+  right: 5vmin;
+  bottom: 5vmin;
+  z-index: 900;
+  text-align: right;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 400;
+  text-transform: lowercase;
+  color: #000000;
+  text-shadow: none;
+  font-size: clamp(2rem, 5.5vw, 3.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}

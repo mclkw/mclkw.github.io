@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LKW.fyi — work</title>
 <link rel="stylesheet" href="/styles/menu.css">
+<link rel="stylesheet" href="/styles/site-header.css">
 <style>
   html, body {
     height: 100%;
     margin: 0;
     overflow: hidden;
-    background: #453f39;
   }
   #cornerlogo {
     position: fixed;
@@ -20,19 +20,16 @@
     display: block;
     cursor: pointer;
   }
-  .menu a {
-    text-shadow: none;
-  }
   .worklist-wrap {
     position: fixed;
-    top: 2.5vmin;
+    top: calc(var(--header-h, 60px) + 2.5vmin);
     left: 2.5vmin;
     width: 64vw;
-    height: calc(100vh - 5vmin);
+    height: calc(100vh - var(--header-h, 60px) - 5vmin);
     display: flex;
     flex-direction: row;
     gap: 10px;
-    z-index: 900;
+    z-index: 850;
   }
   /* custom scrollbar - not relying on native scrollbar styling, which
      several browsers (notably Safari) won't reliably keep always-visible
@@ -44,7 +41,7 @@
     margin-top: 18px;
     height: calc(100% - 18px);
     border-radius: 7px;
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(0, 0, 0, 0.12);
     cursor: pointer;
   }
   .worklist-thumb {
@@ -54,8 +51,7 @@
     width: 100%;
     height: 100%;
     border-radius: 7px;
-    background: #00ff00;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.45);
+    background: #000000;
   }
   .worklist {
     flex: 1 1 auto;
@@ -64,7 +60,7 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 0.15em;
+    gap: 0.5em;
     overflow-y: auto;
     overflow-x: hidden;
     padding: 18px 18px 18px 6px;
@@ -76,23 +72,23 @@
     height: 0;
   }
   .worklist a {
-    font-family: 'Euripides', 'Helvetica Neue', Arial, sans-serif;
-    font-weight: 700;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 400;
     text-transform: lowercase;
     text-decoration: none;
-    color: #ffffff;
+    color: #000000;
     text-shadow: none;
     font-size: clamp(2rem, 5.5vw, 3.75rem);
-    line-height: 1.05;
+    line-height: 0.86;
     letter-spacing: -0.01em;
-    transition: color 0.25s ease, transform 0.25s ease, text-shadow 0.25s ease;
+    transition: transform 0.25s ease;
     cursor: pointer;
     max-width: 100%;
   }
   .worklist a:hover,
   .worklist a.touch-hover {
-    color: #00ff00;
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    font-family: 'Arial Black', Arial, sans-serif;
+    font-weight: 900;
     transform: translateX(3px);
   }
   .worklist .tag-wrap {
@@ -104,51 +100,102 @@
     margin-left: 0.5em;
     padding: 0.2em 0.65em;
     border-radius: 999px;
-    background: #00ff00;
-    color: #1a1a1a;
+    background: #000000;
+    color: #ffffff;
     font-family: Arial, Helvetica, sans-serif;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     font-size: clamp(0.65rem, 0.9vw, 0.85rem);
-    opacity: 0;
-    transition: opacity 0.25s ease;
-  }
-  .worklist a:hover .tag,
-  .worklist a.touch-hover .tag {
-    opacity: 1;
   }
   .approach {
     position: fixed;
-    top: 2.5vmin;
+    top: calc(var(--header-h, 60px) + 2.5vmin);
     right: 5vmin;
     width: 28vw;
     min-width: 220px;
     max-height: 60vh;
     overflow-y: auto;
     z-index: 800;
+    background: #ffffff;
     font-family: Arial, Helvetica, sans-serif;
     font-size: clamp(0.85rem, 1.1vw, 1.05rem);
     line-height: 1.6;
-    color: #e8e2da;
+    color: #000000;
+  }
+  .approach-fold {
+    display: none;
   }
 
-  /* portrait: stack the description above the title list instead of
-     beside it, both spanning the full width except a reserved strip on
-     the right matching the menu's own footprint (kept up to date by JS
-     via --menu-w, since the menu's rendered width depends on its font). */
+  /* portrait: the description sits folded to a single line above the
+     title list by default (no internal scrolling) with a thin black line
+     and arrow beneath it as the unfold control; unfolding shows the full
+     text in place, pushing the title list down to start right after it
+     (via --approach-h, updated to the description's live height either
+     way), and folding it back snaps the list back up. */
   @media (orientation: portrait) {
     .approach {
       left: 2.5vmin;
-      right: auto;
-      width: calc(100vw - var(--menu-w, 30vw));
+      right: 2.5vmin;
+      width: auto;
       min-width: 0;
-      max-height: 22vh;
+      max-height: 3.2em;
+      overflow: hidden;
+    }
+    .approach:not(.expanded) p {
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin: 0;
+    }
+    .approach:not(.expanded) p ~ p {
+      display: none;
+    }
+    .approach.expanded {
+      max-height: none;
+      overflow: visible;
+    }
+    .approach-fold {
+      display: block;
+      width: 100%;
+      height: 16px;
+      margin-top: 0.3em;
+      padding: 0;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      position: relative;
+    }
+    .approach-fold::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 2px;
+      background: #000000;
+    }
+    .approach-fold::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 6px solid #000000;
+      transform: translate(-50%, -10%);
+    }
+    .approach.expanded .approach-fold::after {
+      transform: translate(-50%, -90%) rotate(180deg);
     }
     .worklist-wrap {
-      top: calc(22vh + 5vmin);
-      width: calc(100vw - var(--menu-w, 30vw));
-      height: calc(100vh - 22vh - 7.5vmin);
+      top: calc(var(--header-h, 60px) + var(--approach-h, 3.2em) + 5vmin);
+      left: 2.5vmin;
+      width: calc(100vw - 5vmin);
+      height: calc(100vh - var(--header-h, 60px) - var(--approach-h, 3.2em) - 7.5vmin);
     }
   }
 </style>
@@ -156,33 +203,42 @@
 <body data-page="work" data-corner="bottom-left">
 <img id="cornerlogo" src="/images/logogruen.png" alt="back to home">
 
+<header class="site-header">
+  <span class="brand">lea kiri wyrger</span>
+  <nav class="menu">
+    <a href="/work/" data-page="work">index</a>
+    <a href="/about/" data-page="about">about</a>
+    <a href="mailto:lea.wuertenberger@gmail.com" data-page="contact">contact</a>
+  </nav>
+</header>
+
 <div class="worklist-wrap">
   <div class="worklist-track" id="worklistTrack">
     <div class="worklist-thumb" id="worklistThumb"></div>
   </div>
   <nav class="worklist" id="worklist">
-    <a href="/commoning-death/">commoning <span class="tag-wrap">death<span class="tag">study</span></span></a>
-    <a href="#">steel on <span class="tag-wrap">canvas<span class="tag">metalwork</span></span></a>
-    <a href="#">inflatable <span class="tag-wrap">prototype I<span class="tag">prototype</span></span></a>
-    <a href="#">pigeon <span class="tag-wrap">oracle<span class="tag">public affection</span></span></a>
-    <a href="#">posthuman <span class="tag-wrap">fragments<span class="tag">costume</span></span></a>
-    <a href="#">unknown return to <span class="tag-wrap">player<span class="tag">game installation</span></span></a>
-    <a href="#">istanbul ghetto club: <span class="tag-wrap">masks<span class="tag">costume</span></span></a>
-    <a href="#">one day all <span class="tag-wrap">dreams<span class="tag">performance &amp; costume</span></span></a>
-    <a href="#">amateur home <span class="tag-wrap">making<span class="tag">zine</span></span></a>
-    <a href="#">die funzel. halbjahresschrift für prätentiöse <span class="tag-wrap">studien<span class="tag">magazine</span></span></a>
+    <a href="/commoning-death/" data-year="2024">commoning <span class="tag-wrap">death<span class="tag">study</span></span></a>
+    <a href="/steel-on-canvas/" data-year="2019">steel on <span class="tag-wrap">canvas<span class="tag">metalwork</span></span></a>
+    <a href="/inflatable-prototype-i/" data-year="2021">inflatable <span class="tag-wrap">prototype I<span class="tag">prototype</span></span></a>
+    <a href="/pigeon-oracle/" data-year="2022">pigeon <span class="tag-wrap">oracle<span class="tag">public affection</span></span></a>
+    <a href="/posthuman-fragments/" data-year="2020">posthuman <span class="tag-wrap">fragments<span class="tag">costume</span></span></a>
+    <a href="/unknown-return-to-player/" data-year="2023">unknown return to <span class="tag-wrap">player<span class="tag">game installation</span></span></a>
+    <a href="/istanbul-ghetto-club-masks/" data-year="2018">istanbul ghetto club: <span class="tag-wrap">masks<span class="tag">costume</span></span></a>
+    <a href="/one-day-all-dreams/" data-year="2022">one day all <span class="tag-wrap">dreams<span class="tag">performance &amp; costume</span></span></a>
+    <a href="/amateur-home-making/" data-year="2017">amateur home <span class="tag-wrap">making<span class="tag">zine</span></span></a>
+    <a href="/die-funzel/" data-year="2021">die funzel. halbjahresschrift für prätentiöse <span class="tag-wrap">studien<span class="tag">magazine</span></span></a>
   </nav>
 </div>
 
-<div class="approach">
+<div class="approach" id="approach">
   <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
   <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+  <button type="button" class="approach-fold" id="approachFold" aria-expanded="false" aria-label="unfold description"></button>
 </div>
 
-<nav class="menu">
-  <a href="/work/" data-page="work">work</a>
-  <a href="/about/" data-page="about">about</a>
-  <a href="mailto:lea.wuertenberger@gmail.com" data-page="contact">contact</a>
+<nav class="menu corner-menu" id="sortMenu">
+  <a href="#" data-sort="medium">medium</a>
+  <a href="#" data-sort="date">date</a>
 </nav>
 
 <script src="/bounce.js"></script>
@@ -190,23 +246,81 @@
 <script src="/corner-logo.js"></script>
 <script>
   (function () {
-    // keep --menu-w in sync with the menu's actual rendered width, so the
-    // portrait layout can reserve exactly that much space on the right
-    // instead of guessing a fixed value.
-    var menuEl = document.querySelector(".menu");
-    function updateMenuWidthVar() {
-      if (!menuEl) return;
-      var vmin = Math.min(window.innerWidth, window.innerHeight);
-      var rect = menuEl.getBoundingClientRect();
-      var reserved = rect.width + vmin * 0.05 + vmin * 0.03;
-      document.documentElement.style.setProperty("--menu-w", reserved + "px");
+    // keep --header-h in sync with the header's actual rendered height, so
+    // the fixed panels below it never sit underneath the top bar.
+    var headerEl = document.querySelector(".site-header");
+    function updateHeaderHeightVar() {
+      if (!headerEl) return;
+      var rect = headerEl.getBoundingClientRect();
+      document.documentElement.style.setProperty("--header-h", rect.height + "px");
     }
-    updateMenuWidthVar();
-    window.addEventListener("resize", updateMenuWidthVar);
-    window.addEventListener("orientationchange", updateMenuWidthVar);
+    updateHeaderHeightVar();
+    window.addEventListener("resize", updateHeaderHeightVar);
+    window.addEventListener("orientationchange", updateHeaderHeightVar);
     if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(updateMenuWidthVar);
+      document.fonts.ready.then(updateHeaderHeightVar);
     }
+  })();
+
+  (function () {
+    // portrait only: the description starts folded to one line above the
+    // title list. --approach-h always tracks its current live height
+    // (folded or unfolded), so the title list sits right below it either
+    // way - moving down when unfolded, snapping back up when folded.
+    var approachEl = document.getElementById("approach");
+    var foldEl = document.getElementById("approachFold");
+    if (!approachEl || !foldEl) return;
+
+    function updateApproachHeightVar() {
+      var rect = approachEl.getBoundingClientRect();
+      document.documentElement.style.setProperty("--approach-h", rect.height + "px");
+    }
+    updateApproachHeightVar();
+    window.addEventListener("resize", updateApproachHeightVar);
+    window.addEventListener("orientationchange", updateApproachHeightVar);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(updateApproachHeightVar);
+    }
+
+    foldEl.addEventListener("click", function () {
+      var expanded = approachEl.classList.toggle("expanded");
+      foldEl.setAttribute("aria-expanded", expanded ? "true" : "false");
+      updateApproachHeightVar();
+    });
+  })();
+
+  (function () {
+    // "medium"/"date" reorder the work list in place rather than filtering
+    // it - date uses each entry's data-year (placeholder values for now,
+    // until real dates are set), medium reads the visible tag text.
+    var sortMenuEl = document.getElementById("sortMenu");
+    var list = document.getElementById("worklist");
+    if (!sortMenuEl || !list) return;
+    var sortLinks = sortMenuEl.querySelectorAll("a[data-sort]");
+
+    function mediumOf(a) {
+      var tag = a.querySelector(".tag");
+      return tag ? tag.textContent.trim().toLowerCase() : "";
+    }
+    function yearOf(a) {
+      return parseInt(a.getAttribute("data-year"), 10) || 0;
+    }
+
+    sortLinks.forEach(function (link) {
+      link.addEventListener("click", function (e) {
+        e.preventDefault();
+        var mode = link.getAttribute("data-sort");
+        sortLinks.forEach(function (l) { l.classList.toggle("active", l === link); });
+        var items = Array.from(list.querySelectorAll("a"));
+        items.sort(function (a, b) {
+          return mode === "medium"
+            ? mediumOf(a).localeCompare(mediumOf(b))
+            : yearOf(b) - yearOf(a);
+        });
+        items.forEach(function (a) { list.appendChild(a); });
+        list.scrollTop = 0;
+      });
+    });
   })();
 
   (function () {

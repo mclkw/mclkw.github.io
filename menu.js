@@ -6,9 +6,12 @@
     var links = document.querySelectorAll(".menu a[data-page]");
     if (!links.length) return;
     var current = document.body.getAttribute("data-page") || "";
-    // the index page redesign is all-black-on-white; other pages keep the
-    // chroma-key green highlight that matches their green-screen imagery.
-    var HIGHLIGHT_COLOR = current ? "#00ff00" : "#000000";
+    // pages using the new white/black site header (index, work, about) show
+    // the active/triggered link in black, matching that design; pages that
+    // kept their own dark theme (e.g. the commoning-death project page)
+    // keep the chroma-key green highlight that matches their imagery.
+    var usesNewHeader = !!document.querySelector(".site-header");
+    var HIGHLIGHT_COLOR = usesNewHeader ? "#000000" : "#00ff00";
 
     links.forEach(function (a) {
       var page = a.getAttribute("data-page");

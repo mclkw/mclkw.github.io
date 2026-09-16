@@ -5,72 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LKW.fyi</title>
 <link rel="stylesheet" href="/styles/menu.css">
+<link rel="stylesheet" href="/styles/site-header.css">
 <style>
   html, body {
     height: 100%;
     margin: 0;
     overflow: hidden;
-    background: #ffffff;
-    color: #000000;
-  }
-  .site-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.4vmin 2.5vmin;
-    border-bottom: 2px solid #000000;
-    background: #ffffff;
-    z-index: 900;
-  }
-  .brand {
-    font-family: Arial, Helvetica, sans-serif;
-    font-weight: 400;
-    text-transform: lowercase;
-    color: #000000;
-    text-shadow: none;
-    font-size: clamp(0.95rem, 1.6vw, 1.35rem);
-    letter-spacing: -0.01em;
-  }
-  .site-header .menu {
-    position: static;
-    flex-direction: row;
-    align-items: center;
-    gap: 1.5em;
-  }
-  .site-header .menu a {
-    font-family: Arial, Helvetica, sans-serif;
-    font-weight: 400;
-    color: #000000;
-    text-shadow: none;
-    font-size: clamp(0.95rem, 1.6vw, 1.35rem);
-    letter-spacing: -0.01em;
-  }
-  .site-header .menu a:hover,
-  .site-header .menu a.touch-hover,
-  .site-header .menu a.active {
-    font-family: 'Arial Black', Arial, sans-serif;
-    font-weight: 900;
-    color: #000000;
-    text-shadow: none;
-  }
-  .corner-menu a {
-    font-family: Arial, Helvetica, sans-serif;
-    font-weight: 400;
-    color: #000000;
-    text-shadow: none;
-  }
-  .corner-menu a:hover,
-  .corner-menu a.touch-hover,
-  .corner-menu a.active {
-    font-family: 'Arial Black', Arial, sans-serif;
-    font-weight: 900;
-    color: #000000;
-    text-shadow: none;
   }
   .logo {
     position: fixed;
@@ -99,6 +39,17 @@
     z-index: 50;
     pointer-events: none;
   }
+  .cluster-frames {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+  }
+  .cluster-frame {
+    position: absolute;
+    border: 1px solid #000000;
+    box-sizing: border-box;
+  }
   .piece {
     position: fixed;
     top: 0;
@@ -114,14 +65,25 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
-    transition: transform 0.35s cubic-bezier(.22,1,.36,1);
+    transition: transform 0.35s cubic-bezier(.22,1,.36,1), filter 0.2s ease;
   }
   .piece:active img {
     transform: scale(0.96);
   }
+  /* a thin border hugging the image's own alpha silhouette (not a
+     rectangular box around it) - four zero-blur drop-shadows offset in
+     each direction approximate an outline around the actual cut-out shape. */
+  .piece.hovered img {
+    filter:
+      drop-shadow(1.5px 0 0 #000000)
+      drop-shadow(-1.5px 0 0 #000000)
+      drop-shadow(0 1.5px 0 #000000)
+      drop-shadow(0 -1.5px 0 #000000);
+  }
 </style>
 </head>
 <body data-page="">
+<div class="cluster-frames" id="clusterFrames"></div>
 <div class="collage" id="collage"></div>
 <div class="logo" id="logo">
   <img src="/images/logolila.png" alt="">
@@ -133,16 +95,17 @@
 <header class="site-header">
   <span class="brand">lea kiri wyrger</span>
   <nav class="menu">
-    <a href="/work/" data-page="work">work</a>
+    <a href="/work/" data-page="work">index</a>
     <a href="/about/" data-page="about">about</a>
     <a href="mailto:lea.wuertenberger@gmail.com" data-page="contact">contact</a>
   </nav>
 </header>
 
 <nav class="menu corner-menu" id="cornerMenu">
-  <a href="#" data-page="art">art</a>
-  <a href="#" data-page="research">research</a>
-  <a href="#" data-page="other">other</a>
+  <a href="#" data-filter="all" class="active">all</a>
+  <a href="#" data-filter="art">art</a>
+  <a href="#" data-filter="research">research</a>
+  <a href="#" data-filter="other">other</a>
 </nav>
 
 <script src="/bounce.js"></script>
