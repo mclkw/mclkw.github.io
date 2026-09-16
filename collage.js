@@ -4,7 +4,10 @@
     "pigshite.png", "zine.png", "zine2.png", "kirmes.png", "pigeon.png",
     "Wirbelwind.png", "slots.png", "cards.png", "printer.png",
     "workingarts.png", "slots2.jpeg", "reiter.png", "transhuman.png",
-    "funzel1.png", "funzel2.png", "printer2.png", "stage1.png"
+    "funzel1.png", "funzel2.png", "printer2.png", "stage1.png",
+    "Wirbelwind2.png", "masken1.png", "masken4.png", "pigeon3.png",
+    "posthuman2.png", "posthuman4.png", "slots3.png", "slots4.png", "slots5.png",
+    "reiter3.png"
   ];
   // where each image links to - whichever subpage actually features it
   var LINKS = {
@@ -33,7 +36,17 @@
     "funzel1.png": "other",
     "funzel2.png": "other",
     "printer2.png": "art",
-    "stage1.png": "art"
+    "stage1.png": "other",
+    "Wirbelwind2.png": "other",
+    "masken1.png": "other",
+    "masken4.png": "other",
+    "pigeon3.png": "other",
+    "posthuman2.png": "other",
+    "posthuman4.png": "other",
+    "slots3.png": "art",
+    "slots4.png": "art",
+    "slots5.png": "art",
+    "reiter3.png": "art"
   };
   var RAYS = 64;
   var ALPHA_THRESH = 10;
