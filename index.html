@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LKW.fyi</title>
+<meta name="description" content="Lea Kiri Wyrger is a cross-disciplinary artist and researcher based between Vienna and Berlin.">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="stylesheet" href="/styles/menu.css">
 <link rel="stylesheet" href="/styles/site-header.css">
@@ -107,9 +108,9 @@
 
 <nav class="menu corner-menu" id="cornerMenu">
   <a href="#" data-filter="all" class="active">all</a>
-  <a href="#" data-filter="art">art</a>
+  <a href="#" data-filter="art">visual art</a>
+  <a href="#" data-filter="other">applied art</a>
   <a href="#" data-filter="research">research</a>
-  <a href="#" data-filter="other">other</a>
 </nav>
 
 <script src="/bounce.js"></script>
@@ -220,27 +221,37 @@
     applyFrame(startX, startY, startVx, startVy);
     startFreeRoam(startX, startY, startVx, startVy);
 
+    // plays the logo bouncing off toward the edge and hands its position/
+    // velocity off via sessionStorage, so whichever page loads next can
+    // pick its own logo up already moving instead of starting fresh. used
+    // for every internal navigation away from this page, not just the
+    // top-menu links - including collage piece clicks, wired up in
+    // collage.js via window.lkwDepart.
+    function departTo(href) {
+      if (stopFn) stopFn();
+      window.startBounce({
+        x: liveX, y: liveY, vx: liveVx, vy: liveVy,
+        size: size, bounds: bounds, speed: speed,
+        onBounce: bounceColor,
+        onFrame: applyFrame,
+        duration: 550,
+        onDone: function (final) {
+          try {
+            sessionStorage.setItem("lkw_logo_state", JSON.stringify({
+              x: final.x, y: final.y, vx: final.vx, vy: final.vy,
+              vw: window.innerWidth, vh: window.innerHeight
+            }));
+          } catch (err) {}
+          window.location.href = href;
+        }
+      });
+    }
+    window.lkwDepart = departTo;
+
     document.querySelectorAll('.menu a[data-page="work"], .menu a[data-page="about"]').forEach(function (a) {
       a.addEventListener("click", function (e) {
         e.preventDefault();
-        var href = a.getAttribute("href");
-        if (stopFn) stopFn();
-        window.startBounce({
-          x: liveX, y: liveY, vx: liveVx, vy: liveVy,
-          size: size, bounds: bounds, speed: speed,
-          onBounce: bounceColor,
-          onFrame: applyFrame,
-          duration: 550,
-          onDone: function (final) {
-            try {
-              sessionStorage.setItem("lkw_logo_state", JSON.stringify({
-                x: final.x, y: final.y, vx: final.vx, vy: final.vy,
-                vw: window.innerWidth, vh: window.innerHeight
-              }));
-            } catch (err) {}
-            window.location.href = href;
-          }
-        });
+        departTo(a.getAttribute("href"));
       });
     });
   })();

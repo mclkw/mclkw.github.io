@@ -151,6 +151,13 @@
       departTo("/");
     });
 
+    // exposed so pages that rebuild their own links dynamically (the work
+    // page's title list, which regenerates when its medium/date sort is
+    // used) can trigger the same bounce-and-handoff via delegation,
+    // instead of this one-time attachment below missing links created
+    // after this runs.
+    window.lkwDepart = departTo;
+
     document.querySelectorAll('.menu a[data-page="work"], .menu a[data-page="about"]').forEach(function (a) {
       var page = a.getAttribute("data-page");
       if (page === currentPage) return;

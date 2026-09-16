@@ -358,6 +358,18 @@
       wrap.style.width = "1px";
       wrap.style.height = "1px";
       wrap.style.pointerEvents = "none";
+      // pieces that link somewhere real hand the roaming logo off to that
+      // page (see window.lkwDepart in index.html) so its bounce continues
+      // smoothly instead of restarting fresh on arrival - same treatment
+      // the top-menu links already get.
+      if (LINKS[name]) {
+        wrap.addEventListener("click", function (e) {
+          if (window.lkwDepart) {
+            e.preventDefault();
+            window.lkwDepart(LINKS[name]);
+          }
+        });
+      }
       // reuse the already-loaded/decoded image used for shape analysis,
       // rather than creating a second <img> that would need its own
       // decode - painting a filter (drop-shadow) on an image before the

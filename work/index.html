@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LKW.fyi — work</title>
+<meta name="description" content="Lea Kiri Wyrger is a cross-disciplinary artist and researcher based between Vienna and Berlin.">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="stylesheet" href="/styles/menu.css">
 <link rel="stylesheet" href="/styles/site-header.css">
@@ -95,10 +96,18 @@
   .worklist .tag-wrap {
     white-space: nowrap;
   }
-  .worklist .tag {
-    display: inline-block;
+  /* up to two tags stack vertically here rather than sitting side by side -
+     each colored per its label (set inline per tag, see the script below). */
+  .worklist .tag-stack {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2em;
     vertical-align: middle;
     margin-left: 0.5em;
+  }
+  .worklist .tag {
+    display: inline-block;
     padding: 0.2em 0.65em;
     border-radius: 999px;
     background: #000000;
@@ -221,18 +230,7 @@
   <div class="worklist-track" id="worklistTrack">
     <div class="worklist-thumb" id="worklistThumb"></div>
   </div>
-  <nav class="worklist" id="worklist">
-    <a href="/commoning-death/" data-year="2024">commoning <span class="tag-wrap">death<span class="tag">study</span></span></a>
-    <a href="/steel-on-canvas/" data-year="2019">steel on <span class="tag-wrap">canvas<span class="tag">metalwork</span></span></a>
-    <a href="/inflatable-prototype-i/" data-year="2021">inflatable <span class="tag-wrap">prototype I<span class="tag">prototype</span></span></a>
-    <a href="/pigeon-oracle/" data-year="2022">pigeon <span class="tag-wrap">oracle<span class="tag">public affection</span></span></a>
-    <a href="/posthuman-fragments/" data-year="2020">posthuman <span class="tag-wrap">fragments<span class="tag">costume</span></span></a>
-    <a href="/unknown-return-to-player/" data-year="2023">unknown return to <span class="tag-wrap">player<span class="tag">game installation</span></span></a>
-    <a href="/istanbul-ghetto-club-masks/" data-year="2018">istanbul ghetto club: <span class="tag-wrap">masks<span class="tag">costume</span></span></a>
-    <a href="/one-day-all-dreams/" data-year="2022">one day all <span class="tag-wrap">dreams<span class="tag">performance &amp; costume</span></span></a>
-    <a href="/amateur-home-making/" data-year="2017">amateur home <span class="tag-wrap">making<span class="tag">zine</span></span></a>
-    <a href="/die-funzel/" data-year="2021">die funzel. halbjahresschrift für prätentiöse <span class="tag-wrap">studien<span class="tag">magazine</span></span></a>
-  </nav>
+  <nav class="worklist" id="worklist"></nav>
 </div>
 
 <div class="approach expanded" id="approach">
@@ -299,46 +297,79 @@
   })();
 
   (function () {
-    // "medium"/"date" reorder the work list in place rather than filtering
-    // it - date uses each entry's data-year (placeholder values for now,
-    // until real dates are set), medium reads the visible tag text.
+    // the work list, its labels/colors, and its date (month.year, e.g.
+    // 2025.02 for Feb 2025 - kept fine-grained enough to sort by, but
+    // never printed anywhere; the "date" sort is the only use for it).
+    var LABELS = ["sculpture", "costume", "performance", "research project", "publication", "prototype", "stage", "game", "public affection"];
+    var LABEL_COLORS = {
+      "sculpture": "#1b5e20",
+      "costume": "#ec4899",
+      "performance": "#14b8a6",
+      "research project": "#2563eb",
+      "publication": "#dc2626",
+      "prototype": "#eab308",
+      "stage": "#22c55e",
+      "game": "#f97316",
+      "public affection": "#8b5cf6"
+    };
+    var WORKS = [
+      { title: "commoning death", href: "/commoning-death/", date: 2025.02, labels: ["research project", "publication"] },
+      { title: "steel on canvas", href: "/steel-on-canvas/", date: 2024.10, labels: ["sculpture"] },
+      { title: "inflatable carry-on", href: "/inflatable-carry-on/", date: 2026.06, labels: ["prototype"] },
+      { title: "pigeon oracle", href: "/pigeon-oracle/", date: 2024.12, labels: ["public affection"] },
+      { title: "posthuman fragments", href: "/posthuman-fragments/", date: 2022.03, labels: ["costume"] },
+      { title: "unknown return to player", href: "/unknown-return-to-player/", date: 2026.07, labels: ["game", "sculpture"] },
+      { title: "masks for istanbul ghetto club", href: "/masks-for-istanbul-ghetto-club/", date: 2025.10, labels: ["costume"] },
+      { title: "one day all dreams", href: "/one-day-all-dreams/", date: 2021.11, labels: ["performance", "costume"] },
+      { title: "amateur home making", href: "/amateur-home-making/", date: 2026.06, labels: ["research project", "publication"] },
+      { title: "die funzel. halbjahresschrift für prätentiöse studien.", href: "/die-funzel/", date: 2020.01, labels: ["publication"] },
+      { title: "epistemic gamification", href: "/epistemic-gamification/", date: 2026.02, labels: ["research project"] },
+      { title: "aesthetics in scientific understanding", href: "/aesthetics-in-scientific-understanding/", date: 2021.01, labels: ["research project"] },
+      { title: "business cards // 명함", href: "/business-cards/", date: 2023.06, labels: ["sculpture", "publication"] },
+      { title: "2 ½ stars", href: "/2-half-stars/", date: 2023.06, labels: ["sculpture", "publication"] },
+      { title: "gartenbühne bau mich auf / live from earth", href: "/live-from-earth/", date: 2021.07, labels: ["stage"] }
+    ];
+
     var sortMenuEl = document.getElementById("sortMenu");
-    var list = document.getElementById("worklist");
-    if (!sortMenuEl || !list) return;
-    var sortLinks = sortMenuEl.querySelectorAll("a[data-sort]");
-
-    function mediumOf(a) {
-      var tag = a.querySelector(".tag");
-      return tag ? tag.textContent.trim().toLowerCase() : "";
-    }
-    function yearOf(a) {
-      return parseInt(a.getAttribute("data-year"), 10) || 0;
-    }
-
-    sortLinks.forEach(function (link) {
-      link.addEventListener("click", function (e) {
-        e.preventDefault();
-        var mode = link.getAttribute("data-sort");
-        sortLinks.forEach(function (l) { l.classList.toggle("active", l === link); });
-        var items = Array.from(list.querySelectorAll("a"));
-        items.sort(function (a, b) {
-          return mode === "medium"
-            ? mediumOf(a).localeCompare(mediumOf(b))
-            : yearOf(b) - yearOf(a);
-        });
-        items.forEach(function (a) { list.appendChild(a); });
-        list.scrollTop = 0;
-      });
-    });
-  })();
-
-  (function () {
     var list = document.getElementById("worklist");
     var track = document.getElementById("worklistTrack");
     var thumb = document.getElementById("worklistThumb");
-    if (!list || !track || !thumb) return;
+    if (!list) return;
 
-    function update() {
+    function tagEl(label) {
+      var tag = document.createElement("span");
+      tag.className = "tag";
+      tag.textContent = label;
+      tag.style.background = LABEL_COLORS[label] || "#000000";
+      tag.style.color = label === "prototype" ? "#000000" : "#ffffff";
+      return tag;
+    }
+
+    // onlyLabel: used by the medium view, where a dual-labeled work gets
+    // one row per label instead of both labels stacked on a single row.
+    function buildEntry(work, onlyLabel) {
+      var a = document.createElement("a");
+      a.href = work.href;
+      a.setAttribute("data-year", work.date);
+      var words = work.title.split(" ");
+      var last = words.pop();
+      var rest = words.join(" ");
+      if (rest) a.appendChild(document.createTextNode(rest + " "));
+      var wrap = document.createElement("span");
+      wrap.className = "tag-wrap";
+      wrap.appendChild(document.createTextNode(last));
+      var stack = document.createElement("span");
+      stack.className = "tag-stack";
+      (onlyLabel ? [onlyLabel] : work.labels).forEach(function (label) {
+        stack.appendChild(tagEl(label));
+      });
+      wrap.appendChild(stack);
+      a.appendChild(wrap);
+      return a;
+    }
+
+    function updateScrollbar() {
+      if (!track || !thumb) return;
       var scrollable = list.scrollHeight - list.clientHeight;
       var trackH = track.clientHeight;
       var ratioVisible = Math.min(1, list.clientHeight / list.scrollHeight);
@@ -348,41 +379,97 @@
       var scrollRatio = scrollable > 0 ? list.scrollTop / scrollable : 0;
       thumb.style.top = (scrollRatio * maxThumbTop) + "px";
     }
+    function afterRender() {
+      list.scrollTop = 0;
+      updateScrollbar();
+    }
 
-    list.addEventListener("scroll", update);
-    window.addEventListener("resize", update);
-    update();
+    function renderDefault() {
+      list.innerHTML = "";
+      WORKS.forEach(function (w) { list.appendChild(buildEntry(w, null)); });
+      afterRender();
+    }
+    function renderByDate() {
+      list.innerHTML = "";
+      WORKS.slice().sort(function (a, b) { return b.date - a.date; }).forEach(function (w) {
+        list.appendChild(buildEntry(w, null));
+      });
+      afterRender();
+    }
+    function renderByMedium() {
+      // every work that carries two labels appears twice here, once under
+      // each label, so grouping by medium never hides either assignment.
+      var rows = [];
+      WORKS.forEach(function (w) {
+        w.labels.forEach(function (label) { rows.push({ work: w, label: label }); });
+      });
+      rows.sort(function (r1, r2) { return LABELS.indexOf(r1.label) - LABELS.indexOf(r2.label); });
+      list.innerHTML = "";
+      rows.forEach(function (r) { list.appendChild(buildEntry(r.work, r.label)); });
+      afterRender();
+    }
 
-    var dragging = false, startY = 0, startScroll = 0;
-    thumb.addEventListener("mousedown", function (e) {
-      dragging = true;
-      startY = e.clientY;
-      startScroll = list.scrollTop;
+    renderDefault();
+
+    if (sortMenuEl) {
+      var sortLinks = sortMenuEl.querySelectorAll("a[data-sort]");
+      sortLinks.forEach(function (link) {
+        link.addEventListener("click", function (e) {
+          e.preventDefault();
+          var mode = link.getAttribute("data-sort");
+          sortLinks.forEach(function (l) { l.classList.toggle("active", l === link); });
+          if (mode === "medium") renderByMedium();
+          else renderByDate();
+        });
+      });
+    }
+
+    // delegated so it keeps working after renderByMedium()/renderByDate()
+    // swap in brand-new <a> elements - a per-element listener set up once
+    // wouldn't survive that.
+    list.addEventListener("click", function (e) {
+      var a = e.target.closest("a");
+      if (!a || !list.contains(a)) return;
       e.preventDefault();
+      if (window.lkwDepart) window.lkwDepart(a.getAttribute("href"));
+      else window.location.href = a.getAttribute("href");
     });
-    window.addEventListener("mousemove", function (e) {
-      if (!dragging) return;
-      var trackH = track.clientHeight;
-      var thumbH = thumb.offsetHeight;
-      var maxThumbTop = trackH - thumbH;
-      var scrollable = list.scrollHeight - list.clientHeight;
-      if (maxThumbTop <= 0 || scrollable <= 0) return;
-      var deltaScroll = ((e.clientY - startY) / maxThumbTop) * scrollable;
-      list.scrollTop = startScroll + deltaScroll;
-    });
-    window.addEventListener("mouseup", function () { dragging = false; });
 
-    track.addEventListener("mousedown", function (e) {
-      if (e.target === thumb) return;
-      var rect = track.getBoundingClientRect();
-      var clickY = e.clientY - rect.top;
-      var thumbH = thumb.offsetHeight;
-      var maxThumbTop = track.clientHeight - thumbH;
-      var scrollable = list.scrollHeight - list.clientHeight;
-      if (maxThumbTop <= 0 || scrollable <= 0) return;
-      var targetTop = Math.min(Math.max(0, clickY - thumbH / 2), maxThumbTop);
-      list.scrollTop = (targetTop / maxThumbTop) * scrollable;
-    });
+    if (track && thumb) {
+      list.addEventListener("scroll", updateScrollbar);
+      window.addEventListener("resize", updateScrollbar);
+
+      var dragging = false, startY = 0, startScroll = 0;
+      thumb.addEventListener("mousedown", function (e) {
+        dragging = true;
+        startY = e.clientY;
+        startScroll = list.scrollTop;
+        e.preventDefault();
+      });
+      window.addEventListener("mousemove", function (e) {
+        if (!dragging) return;
+        var trackH = track.clientHeight;
+        var thumbH = thumb.offsetHeight;
+        var maxThumbTop = trackH - thumbH;
+        var scrollable = list.scrollHeight - list.clientHeight;
+        if (maxThumbTop <= 0 || scrollable <= 0) return;
+        var deltaScroll = ((e.clientY - startY) / maxThumbTop) * scrollable;
+        list.scrollTop = startScroll + deltaScroll;
+      });
+      window.addEventListener("mouseup", function () { dragging = false; });
+
+      track.addEventListener("mousedown", function (e) {
+        if (e.target === thumb) return;
+        var rect = track.getBoundingClientRect();
+        var clickY = e.clientY - rect.top;
+        var thumbH = thumb.offsetHeight;
+        var maxThumbTop = track.clientHeight - thumbH;
+        var scrollable = list.scrollHeight - list.clientHeight;
+        if (maxThumbTop <= 0 || scrollable <= 0) return;
+        var targetTop = Math.min(Math.max(0, clickY - thumbH / 2), maxThumbTop);
+        list.scrollTop = (targetTop / maxThumbTop) * scrollable;
+      });
+    }
   })();
 </script>
 </body>
