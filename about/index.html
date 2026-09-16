@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LKW.fyi — about</title>
 <link rel="stylesheet" href="/styles/menu.css">
+<link rel="stylesheet" href="/styles/site-header.css">
 <style>
   html, body {
     height: 100%;
     margin: 0;
     overflow: hidden;
-    background: #453f39;
   }
   #cornerlogo {
     position: fixed;
@@ -20,19 +20,19 @@
     display: block;
     cursor: pointer;
   }
-  .menu a {
-    text-shadow: none;
-  }
 </style>
 </head>
 <body data-page="about" data-corner="top-left">
 <img id="cornerlogo" src="/images/logogruen.png" alt="back to home">
 
-<nav class="menu">
-  <a href="/work/" data-page="work">work</a>
-  <a href="/about/" data-page="about">about</a>
-  <a href="mailto:lea.wuertenberger@gmail.com" data-page="contact">contact</a>
-</nav>
+<header class="site-header">
+  <span class="brand">lea kiri wyrger</span>
+  <nav class="menu">
+    <a href="/work/" data-page="work">index</a>
+    <a href="/about/" data-page="about">about</a>
+    <a href="mailto:lea.wuertenberger@gmail.com" data-page="contact">contact</a>
+  </nav>
+</header>
 
 <script src="/bounce.js"></script>
 <script src="/menu.js"></script>
