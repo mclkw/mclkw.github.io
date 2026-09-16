@@ -7,7 +7,7 @@
     "funzel1.png", "funzel2.png", "printer2.png", "stage1.png",
     "Wirbelwind2.png", "masken1.png", "masken4.png", "pigeon3.png",
     "posthuman2.png", "posthuman4.png", "slots3.png", "slots4.png", "slots5.png",
-    "reiter3.png"
+    "reiter3.png", "posthuman.png"
   ];
   // where each image links to - whichever subpage actually features it
   var LINKS = {
@@ -46,7 +46,8 @@
     "slots3.png": "art",
     "slots4.png": "art",
     "slots5.png": "art",
-    "reiter3.png": "art"
+    "reiter3.png": "art",
+    "posthuman.png": "other"
   };
   var RAYS = 64;
   var ALPHA_THRESH = 10;
