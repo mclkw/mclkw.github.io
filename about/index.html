@@ -22,6 +22,83 @@
     display: block;
     cursor: pointer;
   }
+  /* same font size and top/left margin as the descriptive text on the
+     work page's approach box - mirrored to the left side and widened to
+     roughly half the page, leaving the right half free for a photo. */
+  .about-blurb {
+    position: fixed;
+    top: calc(var(--header-h, 60px) + 2.5vmin);
+    left: 5vmin;
+    width: 44vw;
+    min-width: 220px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+    line-height: 1.6;
+    color: #000000;
+    z-index: 800;
+  }
+  .about-blurb p {
+    margin: 0;
+  }
+  .about-blurb p + p {
+    margin-top: 1em;
+  }
+  /* a menu-line-style rule, but only as wide as the blurb above it - runs
+     from the true left edge of the window to the blurb's own right edge
+     (measured live in script, so it always lines up exactly). */
+  .about-line {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 2px;
+    background: #000000;
+    z-index: 800;
+  }
+  /* anchored to the bottom-left corner instead of following the blurb -
+     wider than the blurb above it, since each entry aims to read as one
+     line: year, a gap, the school (bold), then the programme. */
+  .about-education {
+    position: fixed;
+    left: 5vmin;
+    bottom: 5vmin;
+    width: 50vw;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+    line-height: 1.5;
+    color: #000000;
+    text-transform: lowercase;
+    z-index: 800;
+  }
+  .about-education .edu-entry {
+    margin: 0 0 0.85em;
+  }
+  .about-education .edu-date {
+    display: inline-block;
+    min-width: 6em;
+  }
+  .about-education .edu-school {
+    font-weight: 700;
+  }
+  /* MA/BA stay capitalized even though the rest of the section is
+     lowercased. */
+  .about-education .edu-degree {
+    text-transform: uppercase;
+  }
+
+  @media (orientation: portrait) {
+    .about-blurb {
+      left: 2.5vmin;
+      right: 2.5vmin;
+      width: auto;
+      min-width: 0;
+    }
+    .about-education {
+      left: 2.5vmin;
+      right: 2.5vmin;
+      width: auto;
+    }
+  }
 </style>
 </head>
 <body data-page="about" data-corner="top-left">
@@ -39,8 +116,74 @@
   </nav>
 </header>
 
+<div class="about-blurb" id="aboutBlurb">
+  <p>Lea Kiri Wyrger is a cross-disciplinary artist and researcher based between Vienna and Berlin.</p>
+  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+  <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+  <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.</p>
+  <p>Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur. Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur.</p>
+</div>
+
+<div class="about-line" id="aboutLine"></div>
+
+<div class="about-education" id="aboutEducation">
+  <p class="edu-entry"><span class="edu-date">2025–2027</span><span class="edu-school">University of Applied Arts Vienna</span>. <span class="edu-degree">MA</span> in Cross-Disciplinary Strategies.</p>
+  <p class="edu-entry"><span class="edu-date">2023</span><span class="edu-school">Seoul National University</span>. Exchange in Design and Philosophical Aesthetics.</p>
+  <p class="edu-entry"><span class="edu-date">2022–2025</span><span class="edu-school">Freie Universität Berlin</span>. <span class="edu-degree">MA</span> in Philosophy.</p>
+  <p class="edu-entry"><span class="edu-date">2020</span><span class="edu-school">Sorbonne Paris IV</span>. Exchange in Logic and Philosophy of Science.</p>
+  <p class="edu-entry"><span class="edu-date">2017–2021</span><span class="edu-school">LMU Munich</span>. <span class="edu-degree">BA</span> in Philosophy / Linguistics.</p>
+</div>
+
+<nav class="menu corner-menu" id="thingsMenu">
+  <a href="/things-i-like/">things i like</a>
+</nav>
+
 <script src="/bounce.js"></script>
 <script src="/menu.js"></script>
 <script src="/corner-logo.js"></script>
+<script>
+  (function () {
+    // keep --header-h in sync (same pattern as the work page) so the
+    // blurb never sits underneath the top bar.
+    var headerEl = document.querySelector(".site-header");
+    function updateHeaderHeightVar() {
+      if (!headerEl) return;
+      var rect = headerEl.getBoundingClientRect();
+      document.documentElement.style.setProperty("--header-h", rect.height + "px");
+    }
+    updateHeaderHeightVar();
+    window.addEventListener("resize", updateHeaderHeightVar);
+    window.addEventListener("orientationchange", updateHeaderHeightVar);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(updateHeaderHeightVar);
+    }
+  })();
+
+  (function () {
+    // positions the line from the blurb's own live size - its width
+    // matches the blurb's actual right edge exactly, however wide that
+    // ends up being (responsive, min-width, portrait...), rather than a
+    // guessed fixed value. education is anchored to the bottom-left
+    // corner independently now, in plain CSS.
+    var blurbEl = document.getElementById("aboutBlurb");
+    var lineEl = document.getElementById("aboutLine");
+    if (!blurbEl || !lineEl) return;
+
+    function layout() {
+      var rect = blurbEl.getBoundingClientRect();
+      var vh = window.innerHeight;
+      var gapToLine = Math.max(10, vh * 0.015);
+      var lineTop = rect.bottom + gapToLine;
+      lineEl.style.top = lineTop + "px";
+      lineEl.style.width = rect.right + "px";
+    }
+    layout();
+    window.addEventListener("resize", layout);
+    window.addEventListener("orientationchange", layout);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(layout);
+    }
+  })();
+</script>
 </body>
 </html>

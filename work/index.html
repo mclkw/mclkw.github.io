@@ -162,7 +162,11 @@
       right: 2.5vmin;
       width: auto;
       min-width: 0;
-      max-height: 3.2em;
+      /* one clamped line (1.6em, its own line-height) plus the fold
+         button's own space (28px + 0.3em margin) - previously this only
+         left room for the line, so overflow:hidden clipped the arrow off
+         entirely whenever the description was folded closed. */
+      max-height: calc(1.9em + 28px);
       overflow: hidden;
     }
     .approach:not(.expanded) p {
@@ -214,10 +218,10 @@
       transform: translate(-50%, 0) rotate(180deg);
     }
     .worklist-wrap {
-      top: calc(var(--header-h, 60px) + var(--approach-h, 3.2em) + var(--sort-h, 2.6em) + 7vmin);
+      top: calc(var(--header-h, 60px) + var(--approach-h, calc(1.9em + 28px)) + var(--sort-h, 2.6em) + 7vmin);
       left: 2.5vmin;
       width: calc(100vw - 5vmin);
-      height: calc(100vh - var(--header-h, 60px) - var(--approach-h, 3.2em) - var(--sort-h, 2.6em) - 10vmin);
+      height: calc(100vh - var(--header-h, 60px) - var(--approach-h, calc(1.9em + 28px)) - var(--sort-h, 2.6em) - 10vmin);
     }
     /* the sort control moves out of the fixed bottom-right corner here and
        sits centered in the flow, between the description and the title
@@ -227,7 +231,7 @@
       left: 0;
       right: 0;
       bottom: auto;
-      top: calc(var(--header-h, 60px) + var(--approach-h, 3.2em) + 5vmin);
+      top: calc(var(--header-h, 60px) + var(--approach-h, calc(1.9em + 28px)) + 5vmin);
       flex-direction: row;
       align-items: baseline;
       justify-content: center;
