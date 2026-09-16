@@ -22,20 +22,70 @@
     display: block;
     cursor: pointer;
   }
-  /* same font size and top/left margin as the descriptive text on the
-     work page's approach box - mirrored to the left side and widened to
-     roughly half the page, leaving the right half free for a photo. */
-  .about-blurb {
+  /* the shared .menu a rule lowercases everything by default - overridden
+     here since "things I like" keeps its capital I. */
+  #thingsMenu a {
+    text-transform: none;
+  }
+  /* a bit under half the page, with a clear gap before the text - cover
+     (not stretch) so resizing the window clips/zooms instead of
+     distorting the picture's own ratio. */
+  .about-photo {
+    position: fixed;
+    top: 0;
+    left: 53%;
+    right: 0;
+    bottom: 0;
+    background-image: url(/images/lkw.jpg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 5;
+  }
+  /* bound to the upper border, mirrored to the left side, slightly
+     smaller than before so the gap before the education section (bound
+     to the lower border) actually reads as a gap - capped height with
+     its own internal scroll (same treatment as the work page's approach
+     box) so it can never grow down far enough to collide with education
+     coming up from the bottom, in a short/squeezed landscape window. a
+     thin custom scrollbar sits to its left when it needs to scroll. */
+  .about-blurb-wrap {
     position: fixed;
     top: calc(var(--header-h, 60px) + 2.5vmin);
     left: 5vmin;
     width: 44vw;
     min-width: 220px;
+    max-height: 43vh;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    z-index: 800;
+  }
+  .about-blurb-track {
+    position: relative;
+    flex: 0 0 5px;
+    width: 5px;
+    border-radius: 2.5px;
+    background: rgba(0, 0, 0, 0.12);
+    cursor: pointer;
+  }
+  .about-blurb-thumb {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 2.5px;
+    background: #000000;
+  }
+  .about-blurb {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-y: auto;
     font-family: Arial, Helvetica, sans-serif;
-    font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+    font-size: clamp(0.75rem, 1vw, 0.92rem);
     line-height: 1.6;
     color: #000000;
-    z-index: 800;
   }
   .about-blurb p {
     margin: 0;
@@ -43,60 +93,144 @@
   .about-blurb p + p {
     margin-top: 1em;
   }
-  /* a menu-line-style rule, but only as wide as the blurb above it - runs
-     from the true left edge of the window to the blurb's own right edge
-     (measured live in script, so it always lines up exactly). */
-  .about-line {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 0;
-    height: 2px;
-    background: #000000;
-    z-index: 800;
+  .about-blurb,
+  .about-education {
+    scrollbar-width: none;
   }
-  /* anchored to the bottom-left corner instead of following the blurb -
-     wider than the blurb above it, since each entry aims to read as one
-     line: year, a gap, the school (bold), then the programme. */
+  .about-blurb::-webkit-scrollbar,
+  .about-education::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+  /* anchored to the bottom-left corner - same width as the blurb above,
+     since each entry now wraps its programme onto its own indented line
+     whenever it doesn't fit alongside the school name, same as portrait.
+     same capped-height/scroll treatment as the blurb, for the same
+     reason - both behave the same way instead of one being unconstrained. */
   .about-education {
     position: fixed;
     left: 5vmin;
     bottom: 5vmin;
-    width: 50vw;
+    width: 44vw;
+    min-width: 220px;
+    max-height: 43vh;
+    overflow-y: auto;
     font-family: Arial, Helvetica, sans-serif;
     font-size: clamp(0.85rem, 1.1vw, 1.05rem);
-    line-height: 1.5;
+    line-height: 1.2;
     color: #000000;
-    text-transform: lowercase;
     z-index: 800;
   }
   .about-education .edu-entry {
-    margin: 0 0 0.85em;
+    margin: 0 0 0.45em;
   }
   .about-education .edu-date {
     display: inline-block;
-    min-width: 6em;
+    min-width: 8em;
   }
   .about-education .edu-school {
     font-weight: 700;
   }
-  /* MA/BA stay capitalized even though the rest of the section is
-     lowercased. */
-  .about-education .edu-degree {
-    text-transform: uppercase;
+  /* always its own line, indented to align with where the school name
+     starts (not the date) - in both orientations now, not just portrait. */
+  .about-education .edu-programme {
+    display: block;
+    margin-top: 0.15em;
+    margin-left: 8em;
   }
 
+  .about-scroll-track,
+  .about-scroll-thumb {
+    display: none;
+  }
+
+  /* portrait: no more folding anything - the whole page becomes one
+     scrollable column (text, then the photo, then education), with a
+     custom scrollbar matching the work page's title-list one. the fixed
+     positioning above is overridden to plain flow for every block here. */
   @media (orientation: portrait) {
-    .about-blurb {
+    /* stops well clear of the fixed "things i like" corner link, which
+       stays put at the bottom and doesn't scroll with the page - leaving
+       the scroll area at 2.5vmin let it render underneath/behind it. */
+    .about-scroll-wrap {
+      position: fixed;
+      top: calc(var(--header-h, 60px) + 2.5vmin);
       left: 2.5vmin;
       right: 2.5vmin;
+      bottom: 14vmin;
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      z-index: 800;
+    }
+    .about-scroll-track {
+      display: block;
+      position: relative;
+      flex: 0 0 14px;
+      width: 14px;
+      margin-top: 4px;
+      height: calc(100% - 4px);
+      border-radius: 7px;
+      background: rgba(0, 0, 0, 0.12);
+      cursor: pointer;
+    }
+    .about-scroll-thumb {
+      display: block;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 7px;
+      background: #000000;
+    }
+    .about-scroll {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+    .about-scroll::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
+    }
+
+    .about-blurb-wrap,
+    .about-photo,
+    .about-education {
+      position: static;
+      left: auto;
+      right: auto;
+      top: auto;
+      bottom: auto;
+    }
+    .about-blurb-wrap {
+      display: block;
       width: auto;
       min-width: 0;
+      max-height: none;
+      margin-bottom: 1.5em;
+    }
+    .about-blurb-track,
+    .about-blurb-thumb {
+      display: none;
+    }
+    .about-blurb {
+      overflow-y: visible;
+    }
+    .about-photo {
+      width: 100%;
+      height: 34vh;
+      margin-bottom: 1.5em;
     }
     .about-education {
-      left: 2.5vmin;
-      right: 2.5vmin;
       width: auto;
+      min-width: 0;
+      max-height: none;
+      overflow-y: visible;
+      padding-bottom: 1em;
     }
   }
 </style>
@@ -116,26 +250,38 @@
   </nav>
 </header>
 
-<div class="about-blurb" id="aboutBlurb">
-  <p>Lea Kiri Wyrger is a cross-disciplinary artist and researcher based between Vienna and Berlin.</p>
-  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-  <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-  <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.</p>
-  <p>Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur. Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur.</p>
-</div>
+<div class="about-scroll-wrap" id="aboutScrollWrap">
+  <div class="about-scroll-track" id="aboutScrollTrack">
+    <div class="about-scroll-thumb" id="aboutScrollThumb"></div>
+  </div>
+  <div class="about-scroll" id="aboutScroll">
+    <div class="about-blurb-wrap" id="aboutBlurbWrap">
+      <div class="about-blurb-track" id="aboutBlurbTrack">
+        <div class="about-blurb-thumb" id="aboutBlurbThumb"></div>
+      </div>
+      <div class="about-blurb" id="aboutBlurb">
+        <p>Lea Kiri Wyrger is a cross-disciplinary artist and researcher based between Vienna and Berlin.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+        <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.</p>
+        <p>Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur. Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur.</p>
+      </div>
+    </div>
 
-<div class="about-line" id="aboutLine"></div>
+    <div class="about-photo" id="aboutPhoto"></div>
 
-<div class="about-education" id="aboutEducation">
-  <p class="edu-entry"><span class="edu-date">2025–2027</span><span class="edu-school">University of Applied Arts Vienna</span>. <span class="edu-degree">MA</span> in Cross-Disciplinary Strategies.</p>
-  <p class="edu-entry"><span class="edu-date">2023</span><span class="edu-school">Seoul National University</span>. Exchange in Design and Philosophical Aesthetics.</p>
-  <p class="edu-entry"><span class="edu-date">2022–2025</span><span class="edu-school">Freie Universität Berlin</span>. <span class="edu-degree">MA</span> in Philosophy.</p>
-  <p class="edu-entry"><span class="edu-date">2020</span><span class="edu-school">Sorbonne Paris IV</span>. Exchange in Logic and Philosophy of Science.</p>
-  <p class="edu-entry"><span class="edu-date">2017–2021</span><span class="edu-school">LMU Munich</span>. <span class="edu-degree">BA</span> in Philosophy / Linguistics.</p>
+    <div class="about-education" id="aboutEducation">
+      <p class="edu-entry"><span class="edu-date">2025–2027</span><span class="edu-school">University of Applied Arts Vienna</span> <span class="edu-programme">MA in Cross-Disciplinary Strategies</span></p>
+      <p class="edu-entry"><span class="edu-date">2023</span><span class="edu-school">Seoul National University</span> <span class="edu-programme">Exchange in Design and Philosophical Aesthetics</span></p>
+      <p class="edu-entry"><span class="edu-date">2022–2025</span><span class="edu-school">Free University Berlin</span> <span class="edu-programme">MA in Philosophy</span></p>
+      <p class="edu-entry"><span class="edu-date">2020</span><span class="edu-school">Sorbonne Paris IV</span> <span class="edu-programme">Exchange in Logic and Philosophy of Science</span></p>
+      <p class="edu-entry"><span class="edu-date">2017–2021</span><span class="edu-school">LMU Munich</span> <span class="edu-programme">BA in Philosophy and Linguistics</span></p>
+    </div>
+  </div>
 </div>
 
 <nav class="menu corner-menu" id="thingsMenu">
-  <a href="/things-i-like/">things i like</a>
+  <a href="/things-i-like/">things I like</a>
 </nav>
 
 <script src="/bounce.js"></script>
@@ -143,8 +289,8 @@
 <script src="/corner-logo.js"></script>
 <script>
   (function () {
-    // keep --header-h in sync (same pattern as the work page) so the
-    // blurb never sits underneath the top bar.
+    // keep --header-h in sync (same pattern as the work page) so nothing
+    // ever sits underneath the top bar.
     var headerEl = document.querySelector(".site-header");
     function updateHeaderHeightVar() {
       if (!headerEl) return;
@@ -160,29 +306,120 @@
   })();
 
   (function () {
-    // positions the line from the blurb's own live size - its width
-    // matches the blurb's actual right edge exactly, however wide that
-    // ends up being (responsive, min-width, portrait...), rather than a
-    // guessed fixed value. education is anchored to the bottom-left
-    // corner independently now, in plain CSS.
-    var blurbEl = document.getElementById("aboutBlurb");
-    var lineEl = document.getElementById("aboutLine");
-    if (!blurbEl || !lineEl) return;
+    // custom scrollbar for the blurb, to its left - same mechanics as the
+    // work page's title-list scrollbar. inert in portrait (track/thumb
+    // are display:none there, and the blurb isn't independently
+    // scrollable - it's just part of the one page-level scroll column).
+    var scroll = document.getElementById("aboutBlurb");
+    var track = document.getElementById("aboutBlurbTrack");
+    var thumb = document.getElementById("aboutBlurbThumb");
+    if (scroll && track && thumb) {
+      var update = function () {
+        var scrollable = scroll.scrollHeight - scroll.clientHeight;
+        var trackH = track.clientHeight;
+        var ratioVisible = Math.min(1, scroll.clientHeight / scroll.scrollHeight);
+        var thumbH = Math.min(trackH, Math.max(18, trackH * ratioVisible));
+        thumb.style.height = thumbH + "px";
+        var maxThumbTop = trackH - thumbH;
+        var scrollRatio = scrollable > 0 ? scroll.scrollTop / scrollable : 0;
+        thumb.style.top = (scrollRatio * maxThumbTop) + "px";
+      };
 
-    function layout() {
-      var rect = blurbEl.getBoundingClientRect();
-      var vh = window.innerHeight;
-      var gapToLine = Math.max(10, vh * 0.015);
-      var lineTop = rect.bottom + gapToLine;
-      lineEl.style.top = lineTop + "px";
-      lineEl.style.width = rect.right + "px";
+      scroll.addEventListener("scroll", update);
+      window.addEventListener("resize", update);
+      window.addEventListener("orientationchange", update);
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(update);
+      }
+      update();
+
+      var dragging = false, startY = 0, startScroll = 0;
+      thumb.addEventListener("mousedown", function (e) {
+        dragging = true;
+        startY = e.clientY;
+        startScroll = scroll.scrollTop;
+        e.preventDefault();
+      });
+      window.addEventListener("mousemove", function (e) {
+        if (!dragging) return;
+        var trackH = track.clientHeight;
+        var thumbH = thumb.offsetHeight;
+        var maxThumbTop = trackH - thumbH;
+        var scrollable = scroll.scrollHeight - scroll.clientHeight;
+        if (maxThumbTop <= 0 || scrollable <= 0) return;
+        var deltaScroll = ((e.clientY - startY) / maxThumbTop) * scrollable;
+        scroll.scrollTop = startScroll + deltaScroll;
+      });
+      window.addEventListener("mouseup", function () { dragging = false; });
+
+      track.addEventListener("mousedown", function (e) {
+        if (e.target === thumb) return;
+        var rect = track.getBoundingClientRect();
+        var clickY = e.clientY - rect.top;
+        var thumbH = thumb.offsetHeight;
+        var maxThumbTop = track.clientHeight - thumbH;
+        var scrollable = scroll.scrollHeight - scroll.clientHeight;
+        if (maxThumbTop <= 0 || scrollable <= 0) return;
+        var targetTop = Math.min(Math.max(0, clickY - thumbH / 2), maxThumbTop);
+        scroll.scrollTop = (targetTop / maxThumbTop) * scrollable;
+      });
     }
-    layout();
-    window.addEventListener("resize", layout);
-    window.addEventListener("orientationchange", layout);
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(layout);
+  })();
+
+  (function () {
+    // custom scrollbar for the portrait scroll column - same mechanics as
+    // the work page's title-list scrollbar. inert in landscape (track/
+    // thumb are display:none there, and .about-scroll isn't scrollable).
+    var scroll = document.getElementById("aboutScroll");
+    var track = document.getElementById("aboutScrollTrack");
+    var thumb = document.getElementById("aboutScrollThumb");
+    if (!scroll || !track || !thumb) return;
+
+    function update() {
+      var scrollable = scroll.scrollHeight - scroll.clientHeight;
+      var trackH = track.clientHeight;
+      var ratioVisible = Math.min(1, scroll.clientHeight / scroll.scrollHeight);
+      var thumbH = Math.min(trackH, Math.max(24, trackH * ratioVisible));
+      thumb.style.height = thumbH + "px";
+      var maxThumbTop = trackH - thumbH;
+      var scrollRatio = scrollable > 0 ? scroll.scrollTop / scrollable : 0;
+      thumb.style.top = (scrollRatio * maxThumbTop) + "px";
     }
+
+    scroll.addEventListener("scroll", update);
+    window.addEventListener("resize", update);
+    update();
+
+    var dragging = false, startY = 0, startScroll = 0;
+    thumb.addEventListener("mousedown", function (e) {
+      dragging = true;
+      startY = e.clientY;
+      startScroll = scroll.scrollTop;
+      e.preventDefault();
+    });
+    window.addEventListener("mousemove", function (e) {
+      if (!dragging) return;
+      var trackH = track.clientHeight;
+      var thumbH = thumb.offsetHeight;
+      var maxThumbTop = trackH - thumbH;
+      var scrollable = scroll.scrollHeight - scroll.clientHeight;
+      if (maxThumbTop <= 0 || scrollable <= 0) return;
+      var deltaScroll = ((e.clientY - startY) / maxThumbTop) * scrollable;
+      scroll.scrollTop = startScroll + deltaScroll;
+    });
+    window.addEventListener("mouseup", function () { dragging = false; });
+
+    track.addEventListener("mousedown", function (e) {
+      if (e.target === thumb) return;
+      var rect = track.getBoundingClientRect();
+      var clickY = e.clientY - rect.top;
+      var thumbH = thumb.offsetHeight;
+      var maxThumbTop = track.clientHeight - thumbH;
+      var scrollable = scroll.scrollHeight - scroll.clientHeight;
+      if (maxThumbTop <= 0 || scrollable <= 0) return;
+      var targetTop = Math.min(Math.max(0, clickY - thumbH / 2), maxThumbTop);
+      scroll.scrollTop = (targetTop / maxThumbTop) * scrollable;
+    });
   })();
 </script>
 </body>

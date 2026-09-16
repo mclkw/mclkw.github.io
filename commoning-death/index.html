@@ -22,6 +22,176 @@
     display: block;
     cursor: pointer;
   }
+
+  /* the one big background image - fills everything from the header line
+     down to the bottom section. the bottom section isn't an overlay on
+     top of it, it's its own bar taking real space (--bottom-h, its live
+     measured height), so the image stops right where that bar begins. */
+  .project-hero {
+    position: fixed;
+    top: var(--header-h, 60px);
+    left: 0;
+    right: 0;
+    bottom: var(--bottom-h, 140px);
+    background-image: url(/images/fallen.png);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 5;
+  }
+
+  /* the slideshow is the actual centerpiece here - the hero image behind
+     it is just a background texture. its own edges ARE the window's
+     edges (the same full-bleed box as the hero image, edge to edge
+     between the header and the bottom bar), so no image ever gets
+     awkwardly sliced by some smaller inner box. the arrows float on top
+     of it instead of sitting outside to its left/right, so they stay
+     inside those same edges and can never get pushed off-screen. */
+  .project-carousel {
+    position: fixed;
+    top: var(--header-h, 60px);
+    left: 0;
+    right: 0;
+    bottom: var(--bottom-h, 140px);
+    z-index: 20;
+  }
+  .carousel-viewport {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+  .carousel-track {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    will-change: transform;
+  }
+  /* white circle behind the arrow glyph so it stays visible over any part
+     of the photo behind it - floats above the track, inset from the
+     slideshow's own edges (which are the window's edges) so it's
+     always on screen regardless of orientation. */
+  .carousel-arrow {
+    position: absolute;
+    z-index: 30;
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+    width: 3.4rem;
+    height: 3.4rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.88);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1.7rem;
+    line-height: 1;
+    color: #000000;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+  .carousel-arrow:hover {
+    background: #ffffff;
+    transform: translateY(-50%) scale(1.08);
+  }
+  #carouselPrev { left: 1.2vw; right: auto; }
+  #carouselNext { right: 1.2vw; left: auto; }
+  /* each item's exact size (and the gap between them) is set live from
+     the viewport's own real size in script, so exactly three always
+     fit edge to edge with no leftover sliver of a fourth peeking in. */
+  .carousel-item {
+    flex: 0 0 auto;
+    overflow: hidden;
+  }
+  /* no background behind it - the hero image (and each png's own alpha
+     cutout) stays visible through any transparent part of the picture,
+     rather than being masked behind a solid card. */
+  .carousel-item img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  /* the bottom section - work description (left) and the baked work
+     title (right), on a plain white bar under the hero image (not an
+     overlay on top of it - the hero image stops right above this bar). */
+  .project-bottom {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 800;
+    background: #ffffff;
+    border-top: 2px solid #000000;
+    box-sizing: border-box;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 3vmin;
+    padding: 2.5vmin 5vmin;
+  }
+  .project-desc {
+    flex: 1 1 auto;
+    max-width: 42vw;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+    line-height: 1.5;
+    color: #000000;
+  }
+  .project-desc p {
+    margin: 0;
+  }
+  .project-title {
+    flex: 0 0 auto;
+    text-align: right;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 400;
+    text-transform: lowercase;
+    color: #000000;
+    font-size: clamp(1.6rem, 4.2vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+  }
+
+  @media (orientation: portrait) {
+    /* description stays left-aligned, above the title, which stays
+       right-aligned - same alignment as landscape, just stacked. */
+    .project-bottom {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.8em;
+    }
+    .project-desc {
+      max-width: none;
+      text-align: left;
+    }
+    .project-title {
+      text-align: right;
+    }
+    /* the slideshow turns vertical - cards stack going up/down instead of
+       side to side (script switches the track to a column and sizes
+       cards off the viewport's live height instead of width). the
+       arrows move to the top and bottom edges and rotate to point
+       up/down, staying inset from those same edges - same full-bleed
+       box as landscape, so they're always inside it and on screen. */
+    .carousel-arrow {
+      top: auto;
+      bottom: auto;
+      left: 50%;
+      right: auto;
+      width: 2.3rem;
+      height: 2.3rem;
+      font-size: 1.15rem;
+      transform: translateX(-50%) rotate(90deg);
+    }
+    .carousel-arrow:hover {
+      transform: translateX(-50%) rotate(90deg) scale(1.08);
+    }
+    #carouselPrev { top: 1.2vh; bottom: auto; left: 50%; right: auto; }
+    #carouselNext { bottom: 1.2vh; top: auto; left: 50%; right: auto; }
+  }
 </style>
 </head>
 <body data-page="" data-corner="top-left">
@@ -39,10 +209,174 @@
   </nav>
 </header>
 
-<div class="corner-title">commoning death</div>
+<div class="project-hero" id="projectHero"></div>
+
+<div class="project-carousel" id="projectCarousel">
+  <button type="button" class="carousel-arrow" id="carouselPrev" aria-label="previous image">‹</button>
+  <div class="carousel-viewport" id="carouselViewport">
+    <div class="carousel-track" id="carouselTrack"></div>
+  </div>
+  <button type="button" class="carousel-arrow" id="carouselNext" aria-label="next image">›</button>
+</div>
+
+<div class="project-bottom" id="projectBottom">
+  <div class="project-desc">
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+  </div>
+  <div class="project-title">commoning death</div>
+</div>
 
 <script src="/bounce.js"></script>
 <script src="/menu.js"></script>
 <script src="/corner-logo.js"></script>
+<script>
+  (function () {
+    // keep --header-h in sync (same pattern used site-wide).
+    var headerEl = document.querySelector(".site-header");
+    function updateHeaderHeightVar() {
+      if (!headerEl) return;
+      var rect = headerEl.getBoundingClientRect();
+      document.documentElement.style.setProperty("--header-h", rect.height + "px");
+    }
+    updateHeaderHeightVar();
+    window.addEventListener("resize", updateHeaderHeightVar);
+    window.addEventListener("orientationchange", updateHeaderHeightVar);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(updateHeaderHeightVar);
+    }
+  })();
+
+  (function () {
+    // the hero image (and the slideshow, which shares its exact edges)
+    // fill down to the bottom bar's own live height - recomputed
+    // whenever that can change (bottom bar wrapping in portrait, window
+    // resize...).
+    var bottomEl = document.getElementById("projectBottom");
+    if (!bottomEl) return;
+
+    function layout() {
+      var bottomRect = bottomEl.getBoundingClientRect();
+      document.documentElement.style.setProperty("--bottom-h", bottomRect.height + "px");
+    }
+    layout();
+    window.addEventListener("resize", layout);
+    window.addEventListener("orientationchange", layout);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(layout);
+    }
+  })();
+
+  (function () {
+    // a continuously-flowing slideshow rather than a discrete one-step-
+    // at-a-time one: the track holds the image set repeated several
+    // times back to back, and hovering an arrow smoothly slides it in
+    // that direction for as long as the pointer stays there, wrapping
+    // seamlessly between repeats so it can flow indefinitely - only
+    // three images exist for this example, so it's the same three
+    // repeating, but the mechanism is ready for more.
+    var IMAGES = ["expired.png", "well.png", "football.png"];
+    var REPEATS = 3;
+    var viewport = document.getElementById("carouselViewport");
+    var track = document.getElementById("carouselTrack");
+    var prevBtn = document.getElementById("carouselPrev");
+    var nextBtn = document.getElementById("carouselNext");
+    if (!viewport || !track) return;
+
+    function isPortrait() {
+      return window.innerHeight > window.innerWidth;
+    }
+
+    var items = [];
+    for (var r = 0; r < REPEATS; r++) {
+      IMAGES.forEach(function (name) {
+        var item = document.createElement("div");
+        item.className = "carousel-item";
+        var img = document.createElement("img");
+        img.src = "/images/" + name;
+        img.alt = name.replace(/\.[^.]+$/, "");
+        item.appendChild(img);
+        track.appendChild(item);
+        items.push(item);
+      });
+    }
+
+    var setSize = 0; // px length (width or height) of one full lap through IMAGES, gaps included
+    var pos = 0; // current scroll offset, kept hovering around one setSize
+    var laneSize = 0; // px length of one item+gap slot, used for scroll speed
+
+    // sizes every item (and the gap between them) directly off the
+    // viewport's own live size, rather than the other way around - so
+    // exactly three always fit its edges precisely, with nothing spilling
+    // past them and no sliver of a fourth peeking in from off-screen.
+    function measure() {
+      var portrait = isPortrait();
+      var vpRect = viewport.getBoundingClientRect();
+      var viewportSize = portrait ? vpRect.height : vpRect.width;
+      var gap = Math.max(8, viewportSize * 0.025);
+      var itemSize = (viewportSize - gap * 2) / 3;
+      track.style.flexDirection = portrait ? "column" : "row";
+      track.style.gap = gap + "px";
+      items.forEach(function (item) {
+        item.style.width = portrait ? "100%" : itemSize + "px";
+        item.style.height = portrait ? itemSize + "px" : "100%";
+      });
+      laneSize = itemSize + gap;
+      setSize = laneSize * IMAGES.length;
+      pos = setSize; // start on the middle repeat, room to scroll either way
+      apply();
+    }
+
+    function apply() {
+      track.style.transform = isPortrait()
+        ? "translateY(" + (-pos) + "px)"
+        : "translateX(" + (-pos) + "px)";
+    }
+
+    var dir = 0;
+    var lastFrameTime = null;
+    var SPEED = 0.4; // lanes (item+gap widths) per second - gentle, liquid pace
+
+    function tick(now) {
+      if (lastFrameTime === null) lastFrameTime = now;
+      var dt = now - lastFrameTime;
+      lastFrameTime = now;
+      if (dir !== 0 && setSize > 0) {
+        pos += dir * SPEED * laneSize * (dt / 1000);
+        if (pos < setSize * 0.5) pos += setSize;
+        else if (pos > setSize * 1.5) pos -= setSize;
+        apply();
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    function setDir(next) {
+      dir = next;
+      lastFrameTime = null;
+    }
+
+    if (prevBtn) {
+      prevBtn.addEventListener("mouseenter", function () { setDir(-1); });
+      prevBtn.addEventListener("mouseleave", function () { setDir(0); });
+      prevBtn.addEventListener("touchstart", function () { setDir(-1); }, { passive: true });
+      prevBtn.addEventListener("touchend", function () { setDir(0); });
+      prevBtn.addEventListener("touchcancel", function () { setDir(0); });
+    }
+    if (nextBtn) {
+      nextBtn.addEventListener("mouseenter", function () { setDir(1); });
+      nextBtn.addEventListener("mouseleave", function () { setDir(0); });
+      nextBtn.addEventListener("touchstart", function () { setDir(1); }, { passive: true });
+      nextBtn.addEventListener("touchend", function () { setDir(0); });
+      nextBtn.addEventListener("touchcancel", function () { setDir(0); });
+    }
+
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("orientationchange", measure);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(measure);
+    }
+  })();
+</script>
 </body>
 </html>

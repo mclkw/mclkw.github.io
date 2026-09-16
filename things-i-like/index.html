@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LKW.fyi — things i like</title>
+<title>LKW.fyi — things I like</title>
 <meta name="description" content="Lea Kiri Wyrger is a cross-disciplinary artist and researcher based between Vienna and Berlin.">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="stylesheet" href="/styles/menu.css">
@@ -22,6 +22,11 @@
     display: block;
     cursor: pointer;
   }
+  /* .corner-title lowercases by default - overridden here since "things I
+     like" keeps its capital I. */
+  .corner-title {
+    text-transform: none;
+  }
 </style>
 </head>
 <body data-page="" data-corner="top-left">
@@ -39,7 +44,7 @@
   </nav>
 </header>
 
-<div class="corner-title">things i like</div>
+<div class="corner-title">things I like</div>
 
 <script src="/bounce.js"></script>
 <script src="/menu.js"></script>
