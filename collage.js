@@ -1,19 +1,39 @@
 (function () {
   var IMAGES = [
-    "expired.png", "well.png", "football.png", "fallen.png",
-    "HBD.png", "cans.png", "board.png", "cat.png", "bench.png"
+    "expired.png", "well.png", "football.png",
+    "pigshite.png", "zine.png", "zine2.png", "kirmes.png", "pigeon.png",
+    "Wirbelwind.png", "slots.png", "cards.png", "printer.png",
+    "workingarts.png", "slots2.jpeg", "reiter.png", "transhuman.png",
+    "funzel1.png", "funzel2.png", "printer2.png", "stage1.png"
   ];
   // where each image links to - whichever subpage actually features it
   var LINKS = {
     "expired.png": "/commoning-death/",
     "well.png": "/commoning-death/",
-    "football.png": "/commoning-death/",
-    "fallen.png": "/commoning-death/",
-    "HBD.png": "/commoning-death/",
-    "cans.png": "/commoning-death/",
-    "board.png": "/commoning-death/",
-    "cat.png": "/commoning-death/",
-    "bench.png": "/commoning-death/"
+    "football.png": "/commoning-death/"
+  };
+  // which corner-menu filter category each image belongs to
+  var CATEGORIES = {
+    "expired.png": "research",
+    "well.png": "research",
+    "football.png": "research",
+    "pigshite.png": "other",
+    "zine.png": "research",
+    "zine2.png": "research",
+    "kirmes.png": "art",
+    "pigeon.png": "other",
+    "Wirbelwind.png": "other",
+    "slots.png": "art",
+    "cards.png": "art",
+    "printer.png": "art",
+    "workingarts.png": "research",
+    "slots2.jpeg": "art",
+    "reiter.png": "art",
+    "transhuman.png": "art",
+    "funzel1.png": "other",
+    "funzel2.png": "other",
+    "printer2.png": "art",
+    "stage1.png": "art"
   };
   var RAYS = 64;
   var ALPHA_THRESH = 10;
@@ -91,7 +111,13 @@
         naturalH: naturalH,
         centroidX: cx * inv,
         centroidY: cy * inv,
-        radii: radii.map(function (r) { return r * inv; })
+        radii: radii.map(function (r) { return r * inv; }),
+        // how much of its own bounding box the shape actually fills - a
+        // solid rectangular scan (a publication spread, a book cover) is
+        // near 1; a die-cut silhouette with lots of transparent cutout
+        // around it is much lower. used to size fuller shapes down a bit,
+        // since they'd otherwise visually dominate at the same sizeFactor.
+        fillRatio: count / (w * h)
       });
     });
   }
@@ -106,7 +132,9 @@
       var tY = dy !== 0 ? (naturalH / 2) / Math.abs(dy) : Infinity;
       radii.push(Math.min(tX, tY));
     }
-    return { naturalW: naturalW, naturalH: naturalH, centroidX: cx, centroidY: cy, radii: radii };
+    // no alpha data to measure (getImageData failed) - assume the worst
+    // case, a solid rectangle, same as a real fully-opaque scan would give.
+    return { naturalW: naturalW, naturalH: naturalH, centroidX: cx, centroidY: cy, radii: radii, fillRatio: 1 };
   }
 
   function radiusAt(profile, theta) {
@@ -125,6 +153,20 @@
 
     function vmin() { return Math.min(window.innerWidth, window.innerHeight); }
 
+    // tracked in viewport coordinates (matching each piece's x/y) so simTick
+    // can gently repel nearby pieces as the cursor passes - null whenever
+    // the pointer isn't over the page, so nothing gets pushed by a stale
+    // position.
+    var mouseX = null, mouseY = null;
+    window.addEventListener("mousemove", function (e) {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+    document.addEventListener("mouseleave", function () {
+      mouseX = null;
+      mouseY = null;
+    });
+
     // the bottom-right corner menu (art / research / other) is a solid
     // obstacle for falling pieces, not just a floor/wall - read its live
     // rect each tick (cheap for one small fixed element) and pad it well
@@ -138,10 +180,130 @@
       return { left: r.left - pad, top: r.top - pad, right: r.right + pad, bottom: r.bottom + pad };
     }
 
+    // the black horizontal header line is the real top boundary for the
+    // pieces - not the bare viewport edge - matching the bouncing logo's
+    // own boundary elsewhere on the site.
+    var siteHeaderEl = document.querySelector(".site-header");
+    function topBound() {
+      return siteHeaderEl ? siteHeaderEl.getBoundingClientRect().height : 0;
+    }
+
     var instances = [];
 
+    // the corner menu doubles as a category filter (all / art / research /
+    // other): non-matching pieces are fully deactivated (frozen + hidden)
+    // rather than just hidden, so they don't occupy space or collide.
+    var currentFilter = "all";
+    function shouldShow(inst) {
+      return currentFilter === "all" || inst.category === currentFilter;
+    }
+    function spawnInstance(inst) {
+      inst.everDropped = true;
+      // scattered at a random spot already inside the window (below the
+      // header line) - no falling in from above. the resolve pass below
+      // untangles any overlaps every frame from here on, so it settles
+      // into a packed, tetris-like fit wherever it landed.
+      var top = topBound();
+      inst.x = Math.random() * window.innerWidth;
+      inst.y = top + Math.random() * Math.max(1, window.innerHeight - top);
+      inst.renderX = inst.x;
+      inst.renderY = inst.y;
+      inst.vx = 0;
+      inst.vy = 0;
+      inst.active = true;
+      inst.el.style.opacity = "1";
+      inst.el.style.pointerEvents = "auto";
+    }
+
+    // pieces are sized so their combined visible (opaque) area works out to
+    // roughly TARGET_FILL of the available window area (below the header
+    // line, minus the corner-menu's own footprint) - not a headcount
+    // heuristic, an actual area computation from each visible image's own
+    // real size and how much of its own bounding box it fills (fillRatio,
+    // from the alpha-channel scan). PACKING_EFFICIENCY accounts for the
+    // fact that irregular shapes with mandatory gaps between them can never
+    // actually tile edge-to-edge - without it, "75% full" would demand a
+    // packing that isn't geometrically possible, which is exactly what was
+    // causing pieces to visibly overlap and fail to route around the
+    // corner menu instead of settling into a real non-overlapping layout.
+    var TARGET_FILL = 0.75;
+    var PACKING_EFFICIENCY = 0.55;
+    var GLOBAL_SCALE_MIN = 0.35;
+    var GLOBAL_SCALE_MAX = 2;
+    var globalScale = 1, globalScaleTarget = 1;
+    var GLOBAL_SCALE_EASE = 0.04;
+    function updateGlobalScaleTarget() {
+      var visible = instances.filter(shouldShow);
+      if (!visible.length) return;
+      var vm = vmin();
+      var availArea = window.innerWidth * Math.max(1, window.innerHeight - topBound());
+      var cornerRect = cornerMenuRect();
+      if (cornerRect) {
+        availArea -= Math.max(0, cornerRect.right - cornerRect.left) * Math.max(0, cornerRect.bottom - cornerRect.top);
+      }
+      availArea = Math.max(1, availArea);
+      var sumAreaFactor = 0;
+      visible.forEach(function (inst) {
+        var fill = inst.profile.fillRatio != null ? inst.profile.fillRatio : 1;
+        var aspect = inst.profile.naturalH / inst.profile.naturalW;
+        sumAreaFactor += fill * aspect * inst.sizeFactor * inst.sizeFactor;
+      });
+      var targetArea = TARGET_FILL * PACKING_EFFICIENCY * availArea;
+      var currentArea = sumAreaFactor * vm * vm;
+      var scale = currentArea > 0 ? Math.sqrt(targetArea / currentArea) : 1;
+      globalScaleTarget = Math.min(GLOBAL_SCALE_MAX, Math.max(GLOBAL_SCALE_MIN, scale));
+      // sizes are about to shift - wake everything so the collision pass
+      // re-settles pieces at their new size instead of leaving "sleeping"
+      // ones frozen at stale positions sized for the old scale.
+      instances.forEach(function (inst) { inst.sleeping = false; });
+    }
+    window.addEventListener("resize", updateGlobalScaleTarget);
+    window.addEventListener("orientationchange", updateGlobalScaleTarget);
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      instances.forEach(function (inst) {
+        if (shouldShow(inst)) {
+          if (inst.everDropped) {
+            inst.active = true;
+            inst.el.style.opacity = "1";
+            inst.el.style.pointerEvents = "auto";
+          } else {
+            spawnInstance(inst);
+          }
+        } else {
+          inst.active = false;
+          inst.el.style.opacity = "0";
+          inst.el.style.pointerEvents = "none";
+        }
+      });
+      updateGlobalScaleTarget();
+    }
+    if (cornerMenuEl) {
+      var filterLinks = cornerMenuEl.querySelectorAll("a[data-filter]");
+      filterLinks.forEach(function (a) {
+        a.addEventListener("click", function (e) {
+          e.preventDefault();
+          var filter = a.getAttribute("data-filter");
+          if (filter === currentFilter) return;
+          filterLinks.forEach(function (l) { l.classList.toggle("active", l === a); });
+          setFilter(filter);
+        });
+      });
+    }
+
+    // hoverScale is intentionally NOT part of this - it's a purely visual
+    // bump applied as an extra CSS transform in render() below, so hovering
+    // a piece never changes its collision size and can never shove its
+    // neighbors around.
+    function baseScaleFactorOf(inst) {
+      return (inst.sizeFactor * globalScale * vmin()) / inst.profile.naturalW;
+    }
+    // fitScale is a per-instance emergency shrink (see updateFitScales in
+    // simTick) so a piece can never need more room than the window - minus
+    // the header line - actually has, even before any collision pushing.
     function scaleFactorOf(inst) {
-      return (inst.sizeFactor * inst.hoverScale * vmin()) / inst.profile.naturalW;
+      return baseScaleFactorOf(inst) * (inst.fitScale != null ? inst.fitScale : 1);
     }
 
     function centroidOffset(inst) {
@@ -149,8 +311,9 @@
       return { x: inst.profile.centroidX * s, y: inst.profile.centroidY * s };
     }
 
-    function radiusAtWorld(inst, theta) {
-      return radiusAt(inst.profile, theta) * scaleFactorOf(inst);
+    function radiusAtWorld(inst, theta, scaleOverride) {
+      var s = scaleOverride !== undefined ? scaleOverride : scaleFactorOf(inst);
+      return radiusAt(inst.profile, theta) * s;
     }
 
     function render(inst) {
@@ -158,11 +321,16 @@
       var w = inst.profile.naturalW * s;
       var h = inst.profile.naturalH * s;
       var off = centroidOffset(inst);
-      var left = inst.x - off.x;
-      var top = inst.y - off.y;
+      // rendered from the smoothed renderX/renderY, not the true physics
+      // x/y - the simulation itself resolves overlap quickly and exactly,
+      // but what's drawn trails behind it with a heavy, liquid lag, so a
+      // sharp correction never reads as a jump.
+      var left = inst.renderX - off.x;
+      var top = inst.renderY - off.y;
       inst.el.style.width = w + "px";
       inst.el.style.height = h + "px";
-      inst.el.style.transform = "translate(" + left + "px," + top + "px)";
+      inst.el.style.transform =
+        "translate(" + left + "px," + top + "px) scale(" + inst.hoverScale + ")";
     }
 
     function createInstance(name, profile, index, imgEl) {
@@ -178,22 +346,37 @@
       // decode - painting a filter (drop-shadow) on an image before the
       // browser has finished decoding it can show as a plain rectangle
       // until the next repaint (e.g. the one hover triggers).
-      imgEl.alt = name.replace(".png", "");
+      imgEl.alt = name.replace(/\.[^.]+$/, "");
       imgEl.draggable = false;
       wrap.appendChild(imgEl);
       container.appendChild(wrap);
 
+      // a shape that fills most of its own bounding box (a solid
+      // rectangular publication scan) gets sized down from the same random
+      // base range a die-cut, mostly-cutout silhouette gets, so densely
+      // "full" images don't end up dominating just by being rectangular.
+      var fill = profile.fillRatio != null ? profile.fillRatio : 1;
+      var fillShrink = 1 - fill * 0.4;
+
       var inst = {
         el: wrap,
         profile: profile,
-        sizeFactor: 0.17 + Math.random() * 0.15,
+        category: CATEGORIES[name] || "other",
+        sizeFactor: (0.17 + Math.random() * 0.15) * fillShrink,
         hoverScale: 1,
         hoverTarget: 1,
-        x: 0, y: 0, vx: 0, vy: 0,
-        active: false
+        x: 0, y: 0, renderX: 0, renderY: 0, vx: 0, vy: 0,
+        active: false,
+        everDropped: false
       };
-      wrap.addEventListener("mouseenter", function () { inst.hoverTarget = 1.45; });
-      wrap.addEventListener("mouseleave", function () { inst.hoverTarget = 1; });
+      wrap.addEventListener("mouseenter", function () {
+        inst.hoverTarget = 1.15;
+        wrap.classList.add("hovered");
+      });
+      wrap.addEventListener("mouseleave", function () {
+        inst.hoverTarget = 1;
+        wrap.classList.remove("hovered");
+      });
 
       // touch: holding a finger down previews the enlarge (like hover),
       // lifting it off counts as a tap - shown briefly before navigating
@@ -201,7 +384,8 @@
       var touchHolding = false;
       wrap.addEventListener("touchstart", function () {
         touchHolding = true;
-        inst.hoverTarget = 1.45;
+        inst.hoverTarget = 1.15;
+        wrap.classList.add("hovered");
       }, { passive: true });
       wrap.addEventListener("touchend", function (e) {
         if (!touchHolding) return;
@@ -209,49 +393,53 @@
         e.preventDefault();
         setTimeout(function () {
           inst.hoverTarget = 1;
+          wrap.classList.remove("hovered");
           wrap.click();
         }, 180);
       });
       wrap.addEventListener("touchcancel", function () {
         touchHolding = false;
         inst.hoverTarget = 1;
+        wrap.classList.remove("hovered");
       });
 
       instances.push(inst);
 
-      // pieces drop in one at a time, like tetris pieces, from a spawn
-      // zone slightly left of center and above the visible viewport
+      // pieces fade in already scattered in place, in quick succession
+      // rather than one at a time falling - but only if the current filter
+      // shows this piece's category; if it's filtered out at its scheduled
+      // reveal, setFilter() will bring it in later, whenever a matching
+      // filter gets selected.
       setTimeout(function () {
-        inst.x = window.innerWidth * (0.22 + Math.random() * 0.26);
-        inst.y = -200 - Math.random() * 160;
-        inst.vx = 0;
-        inst.vy = 0;
-        inst.active = true;
-        wrap.style.opacity = "1";
-        wrap.style.pointerEvents = "auto";
-      }, index * 420 + 250);
+        if (shouldShow(inst)) spawnInstance(inst);
+      }, index * 60 + 40);
     }
 
     // sample a spread of angles around the direct line between two shapes'
     // centroids, projected onto that line, so protrusions off to either
     // side are still respected - not just the exact center-line radius.
     var EDGE_OFFSETS = [-0.7, -0.5, -0.32, -0.16, 0, 0.16, 0.32, 0.5, 0.7]; // radians
-    function facingExtent(inst, baseAngle) {
+    function facingExtent(inst, baseAngle, scaleOverride) {
       var max = 0;
       for (var i = 0; i < EDGE_OFFSETS.length; i++) {
         var off = EDGE_OFFSETS[i];
-        var r = radiusAtWorld(inst, baseAngle + off) * Math.cos(off);
+        var r = radiusAtWorld(inst, baseAngle + off, scaleOverride) * Math.cos(off);
         if (r > max) max = r;
       }
       return max;
     }
 
-    var HOVER_EASE = 0.12;
-    var RESOLVE_ITERATIONS = 7;
+    var HOVER_EASE = 0.06;
+    // the actual simulation resolves overlap firmly and quickly (so nothing
+    // stays visibly interpenetrating) - "heavy/flowy/slow" comes from
+    // RENDER_EASE below lagging what's drawn behind that true position,
+    // not from weakening the collision response itself.
+    var RESOLVE_ITERATIONS = 8;
     var CORRECTION_SHARE = 0.5;
     var SLEEP_MOVE_EPS = 0.08;
     var SLEEP_FRAMES = 18;
     var WAKE_DEFICIT = 0.15;
+    var RENDER_EASE = 0.09;
 
     // pushes a piece's centroid out of an axis-aligned rectangle obstacle
     // (the corner menu) along whichever direction gets it out fastest -
@@ -282,16 +470,135 @@
       }
     }
 
+    // whenever 3+ visible pieces of the same category end up touching each
+    // other, draw a thin black rectangular frame behind the whole cluster.
+    // "touching" reuses the same distance test as the piece-piece collision
+    // above (settled pieces rest almost exactly at that distance, `gap`
+    // apart), with a little slack so a barely-separated pair still counts.
+    var clusterFramesEl = document.getElementById("clusterFrames");
+    var frameEls = [];
+    function computeClusters(gap) {
+      var visible = instances.filter(function (inst) { return inst.active; });
+      var count = visible.length;
+      var parent = visible.map(function (_, idx) { return idx; });
+      function find(x) { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; }
+      var TOUCH_SLOP = gap * 1.5;
+
+      for (var i = 0; i < count; i++) {
+        for (var j = i + 1; j < count; j++) {
+          var A = visible[i], B = visible[j];
+          if (A.category !== B.category) continue;
+          var dx = B.x - A.x, dy = B.y - A.y;
+          var dist = Math.hypot(dx, dy) || 0.001;
+          var theta = Math.atan2(dy, dx);
+          var minDist = facingExtent(A, theta) + facingExtent(B, theta + Math.PI) + gap;
+          if (dist <= minDist + TOUCH_SLOP) {
+            var ra = find(i), rb = find(j);
+            if (ra !== rb) parent[ra] = rb;
+          }
+        }
+      }
+
+      var groups = {};
+      for (var k = 0; k < count; k++) {
+        var root = find(k);
+        (groups[root] = groups[root] || []).push(visible[k]);
+      }
+
+      var pad = Math.max(10, vmin() * 0.012);
+      var frames = [];
+      Object.keys(groups).forEach(function (key) {
+        var group = groups[key];
+        if (group.length < 3) return;
+        // uses renderX/renderY (what's actually drawn), not the true x/y,
+        // so the frame never looks detached from the pieces it's framing
+        // while their drawn position is still easing toward the resolved one.
+        var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        group.forEach(function (inst) {
+          minX = Math.min(minX, inst.renderX - facingExtent(inst, Math.PI));
+          maxX = Math.max(maxX, inst.renderX + facingExtent(inst, 0));
+          minY = Math.min(minY, inst.renderY - facingExtent(inst, -Math.PI / 2));
+          maxY = Math.max(maxY, inst.renderY + facingExtent(inst, Math.PI / 2));
+        });
+        frames.push({
+          left: minX - pad, top: minY - pad,
+          width: (maxX - minX) + pad * 2, height: (maxY - minY) + pad * 2
+        });
+      });
+      return frames;
+    }
+    function renderClusterFrames(frames) {
+      while (frameEls.length < frames.length) {
+        var el = document.createElement("div");
+        el.className = "cluster-frame";
+        clusterFramesEl.appendChild(el);
+        frameEls.push(el);
+      }
+      while (frameEls.length > frames.length) {
+        frameEls.pop().remove();
+      }
+      frames.forEach(function (f, idx) {
+        var el = frameEls[idx];
+        el.style.left = f.left + "px";
+        el.style.top = f.top + "px";
+        el.style.width = f.width + "px";
+        el.style.height = f.height + "px";
+      });
+    }
+
     function simTick() {
       var vm = vmin();
-      var gravity = vm * 0.0016;
-      var maxFall = vm * 0.065;
+      var gravity = vm * 0.0004;
+      var maxFall = vm * 0.01;
       var gap = Math.max(12, vm * 0.016);
+      var topWallY = topBound();
       var floorY = window.innerHeight;
       var leftWall = 0, rightWall = window.innerWidth;
       var cornerRect = cornerMenuRect();
       var n = instances.length;
       var i, a;
+
+      globalScale += (globalScaleTarget - globalScale) * GLOBAL_SCALE_EASE;
+
+      // emergency shrink: whatever globalScale says, a piece can never be
+      // allowed to need more room than the window (minus the header line)
+      // actually has - so cap each piece's own scale to what actually fits
+      // its bounding box in there, before any collision/positioning even
+      // runs this frame. this is what "downsize if it doesn't fit" means
+      // in practice, independent of the shared filter-driven grow/shrink.
+      var availW = (rightWall - leftWall) * 0.96;
+      var availH = (floorY - topWallY) * 0.96;
+      for (i = 0; i < n; i++) {
+        a = instances[i];
+        if (!a.active) continue;
+        var base = baseScaleFactorOf(a);
+        var neededW = facingExtent(a, Math.PI, base) + facingExtent(a, 0, base);
+        var neededH = facingExtent(a, -Math.PI / 2, base) + facingExtent(a, Math.PI / 2, base);
+        a.fitScale = Math.min(1, availW / neededW, availH / neededH);
+      }
+
+      // liquid-flow: the cursor lightly, slowly draws nearby pieces toward
+      // it (not repels) as it passes through the collage - the resolve
+      // pass below still keeps them from ever overlapping each other or
+      // the boundaries, so it reads as pieces drifting close without
+      // piling into one another. kept gentle enough that a piece can
+      // still be caught and clicked instead of sliding away.
+      if (mouseX !== null) {
+        var magnetRadius = vm * 0.16;
+        var magnetStrength = vm * 0.0018;
+        for (i = 0; i < n; i++) {
+          a = instances[i];
+          if (!a.active) continue;
+          var mdx = mouseX - a.x, mdy = mouseY - a.y;
+          var mdist = Math.hypot(mdx, mdy);
+          if (mdist > 0.001 && mdist < magnetRadius) {
+            var pull = (1 - mdist / magnetRadius) * magnetStrength;
+            a.x += (mdx / mdist) * pull;
+            a.y += (mdy / mdist) * pull;
+            a.sleeping = false;
+          }
+        }
+      }
 
       for (i = 0; i < n; i++) {
         a = instances[i];
@@ -301,10 +608,10 @@
         a.beforeX = a.x;
         a.beforeY = a.y;
 
-        // sleeping pieces stop free-falling so they don't get nudged by
-        // gravity and re-corrected back every single frame forever - the
-        // constraint pass below still runs for them, so a neighbor growing
-        // on hover can still wake and push them.
+        // a gentle, slow pull toward the bottom - not a fall, more a slow
+        // magnetic drift - plus whatever momentum came out of the last
+        // resolve pass. sleeping pieces stay put entirely, so a settled
+        // pile doesn't keep drifting into itself forever.
         if (!a.sleeping) {
           a.vy = Math.min(a.vy + gravity, maxFall);
           a.x += a.vx;
@@ -327,6 +634,13 @@
           if (a.y + bottomExt > floorY) {
             a.y = floorY - bottomExt;
             if (a.vy > 0) a.vy = 0;
+          }
+          // ceiling: the header line's bottom edge, not the bare viewport
+          // top - a piece can never sit above it, or under it unseen.
+          var topExt = facingExtent(a, -Math.PI / 2);
+          if (a.y - topExt < topWallY) {
+            a.y = topWallY + topExt;
+            if (a.vy < 0) a.vy = 0;
           }
           var leftExt = facingExtent(a, Math.PI);
           if (a.x - leftExt < leftWall) {
@@ -368,12 +682,29 @@
         }
       }
 
-      // velocity is derived from the actual net position change (integration
-      // plus every correction this frame), not left to free-run from raw
-      // gravity - otherwise a piece resting on another piece (only ever
-      // partially corrected via CORRECTION_SHARE, unlike the floor/wall's
-      // exact clamp) keeps re-accumulating near max-fall speed forever,
-      // slamming into its neighbor and never actually settling.
+      // hard limit: the per-pass wall/ceiling checks above can still get
+      // overridden later in the same pass by a pairwise push (a piece
+      // shoved by a crowded neighbor after already being clamped to the
+      // floor, say) - so re-clamp every side once more, unconditionally,
+      // after all relaxation passes are done. this is the actual guarantee
+      // that nothing ever renders outside the window, not just usually.
+      for (i = 0; i < n; i++) {
+        a = instances[i];
+        if (!a.active) continue;
+        var hardBottom = facingExtent(a, Math.PI / 2);
+        if (a.y + hardBottom > floorY) a.y = floorY - hardBottom;
+        var hardTop = facingExtent(a, -Math.PI / 2);
+        if (a.y - hardTop < topWallY) a.y = topWallY + hardTop;
+        var hardLeft = facingExtent(a, Math.PI);
+        if (a.x - hardLeft < leftWall) a.x = leftWall + hardLeft;
+        var hardRight = facingExtent(a, 0);
+        if (a.x + hardRight > rightWall) a.x = rightWall - hardRight;
+      }
+
+      // velocity is derived from the actual net position change this frame
+      // (repulsion nudge plus every correction), so a piece only keeps
+      // drifting while something is actively displacing it, and comes to
+      // rest cleanly the moment nothing is anymore.
       for (i = 0; i < n; i++) {
         a = instances[i];
         if (!a.active || a.sleeping) continue;
@@ -388,7 +719,18 @@
         }
       }
 
+      // the drawn position eases toward the true (already-resolved, never
+      // overlapping) position rather than snapping straight to it - this
+      // is the actual source of the heavy/flowy/slow feel.
+      for (i = 0; i < n; i++) {
+        a = instances[i];
+        if (!a.active) continue;
+        a.renderX += (a.x - a.renderX) * RENDER_EASE;
+        a.renderY += (a.y - a.renderY) * RENDER_EASE;
+      }
+
       for (var k = 0; k < n; k++) if (instances[k].active) render(instances[k]);
+      if (clusterFramesEl) renderClusterFrames(computeClusters(gap));
       requestAnimationFrame(simTick);
     }
 
@@ -412,6 +754,7 @@
       results.filter(Boolean).forEach(function (r, idx) {
         createInstance(r.name, r.profile, idx, r.img);
       });
+      updateGlobalScaleTarget();
       requestAnimationFrame(simTick);
     });
   });
