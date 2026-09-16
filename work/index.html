@@ -62,7 +62,7 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 0.5em;
+    gap: 1.1em;
     overflow-y: auto;
     overflow-x: hidden;
     padding: 18px 18px 18px 6px;
@@ -102,7 +102,7 @@
     display: inline-flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.2em;
+    gap: 0.05em;
     vertical-align: middle;
     margin-left: 0.5em;
   }
@@ -135,6 +135,19 @@
   }
   .approach-fold {
     display: none;
+  }
+  /* plain text, same size as the medium/date links next to it, just not a
+     link - no hover state, no cursor. */
+  .corner-menu .sort-label {
+    display: block;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 400;
+    text-transform: lowercase;
+    color: #000000;
+    text-shadow: none;
+    font-size: clamp(2rem, 5.5vw, 3.75rem);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
   }
 
   /* portrait: the description sits folded to a single line above the
@@ -169,7 +182,7 @@
     .approach-fold {
       display: block;
       width: 100%;
-      height: 16px;
+      height: 28px;
       margin-top: 0.3em;
       padding: 0;
       border: none;
@@ -182,31 +195,47 @@
       position: absolute;
       left: 0;
       right: 0;
-      top: 50%;
+      top: 5px;
       height: 2px;
       background: #000000;
-      transform: translateY(-50%);
     }
-    /* the chevron sits exactly centered on the line, same color and same
-       2px stroke weight as the line itself, so where they cross it just
-       reads as one continuous mark instead of two separate shapes. */
+    /* sits a few px below the line, not on top of it - same in both
+       states, only the chevron's own direction flips. */
     .approach-fold .chevron {
       position: absolute;
       left: 50%;
-      top: 50%;
+      top: 11px;
       width: 14px;
       height: 14px;
-      transform: translate(-50%, -50%);
+      transform: translate(-50%, 0);
       transition: transform 0.25s ease;
     }
     .approach.expanded .approach-fold .chevron {
-      transform: translate(-50%, -50%) rotate(180deg);
+      transform: translate(-50%, 0) rotate(180deg);
     }
     .worklist-wrap {
-      top: calc(var(--header-h, 60px) + var(--approach-h, 3.2em) + 5vmin);
+      top: calc(var(--header-h, 60px) + var(--approach-h, 3.2em) + var(--sort-h, 2.6em) + 7vmin);
       left: 2.5vmin;
       width: calc(100vw - 5vmin);
-      height: calc(100vh - var(--header-h, 60px) - var(--approach-h, 3.2em) - 7.5vmin);
+      height: calc(100vh - var(--header-h, 60px) - var(--approach-h, 3.2em) - var(--sort-h, 2.6em) - 10vmin);
+    }
+    /* the sort control moves out of the fixed bottom-right corner here and
+       sits centered in the flow, between the description and the title
+       list, at a smaller size than its landscape/desktop scale. */
+    .corner-menu {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: auto;
+      top: calc(var(--header-h, 60px) + var(--approach-h, 3.2em) + 5vmin);
+      flex-direction: row;
+      align-items: baseline;
+      justify-content: center;
+      gap: 0.6em;
+    }
+    .corner-menu .sort-label,
+    .corner-menu a {
+      font-size: clamp(0.8rem, 3.2vw, 1.05rem);
     }
   }
 </style>
@@ -244,8 +273,9 @@
 </div>
 
 <nav class="menu corner-menu" id="sortMenu">
+  <span class="sort-label">sort by</span>
   <a href="#" data-sort="medium">medium</a>
-  <a href="#" data-sort="date">date</a>
+  <a href="#" data-sort="date" class="active">date</a>
 </nav>
 
 <script src="/bounce.js"></script>
@@ -266,6 +296,25 @@
     window.addEventListener("orientationchange", updateHeaderHeightVar);
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(updateHeaderHeightVar);
+    }
+  })();
+
+  (function () {
+    // portrait only: the sort control (sort by / medium / date) moves into
+    // the normal flow there, between the description and the title list -
+    // --sort-h tracks its live height so the title list always starts
+    // right after it. harmless in landscape, where nothing reads this var.
+    var sortMenuEl = document.getElementById("sortMenu");
+    function updateSortHeightVar() {
+      if (!sortMenuEl) return;
+      var rect = sortMenuEl.getBoundingClientRect();
+      document.documentElement.style.setProperty("--sort-h", rect.height + "px");
+    }
+    updateSortHeightVar();
+    window.addEventListener("resize", updateSortHeightVar);
+    window.addEventListener("orientationchange", updateSortHeightVar);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(updateSortHeightVar);
     }
   })();
 
@@ -300,18 +349,26 @@
     // the work list, its labels/colors, and its date (month.year, e.g.
     // 2025.02 for Feb 2025 - kept fine-grained enough to sort by, but
     // never printed anywhere; the "date" sort is the only use for it).
-    var LABELS = ["sculpture", "costume", "performance", "research project", "publication", "prototype", "stage", "game", "public affection"];
+    // this order (not alphabetical) is chosen so every pair of labels that
+    // actually co-occurs on some work sits adjacent - costume/performance,
+    // research project/publication, publication/sculpture, sculpture/game -
+    // so a dual-labeled work's averaged medium-sort position always lands
+    // exactly between its two real categories, with nothing else between.
+    var LABELS = ["costume", "performance", "research project", "publication", "sculpture", "game", "stage", "prototype", "public affection"];
     var LABEL_COLORS = {
       "sculpture": "#1b5e20",
-      "costume": "#ec4899",
-      "performance": "#14b8a6",
+      "costume": "#ff2ec4",
+      "performance": "#00e6c3",
       "research project": "#2563eb",
-      "publication": "#dc2626",
-      "prototype": "#eab308",
-      "stage": "#22c55e",
-      "game": "#f97316",
+      "publication": "#ff1a3c",
+      "prototype": "#ffe600",
+      "stage": "#39ff14",
+      "game": "#ff6a00",
       "public affection": "#8b5cf6"
     };
+    // labels bright enough that white text loses contrast - blue and
+    // purple stay pastel as-is, so they're not in here.
+    var DARK_TEXT_LABELS = { "prototype": true, "stage": true, "performance": true, "game": true };
     var WORKS = [
       { title: "commoning death", href: "/commoning-death/", date: 2025.02, labels: ["research project", "publication"] },
       { title: "steel on canvas", href: "/steel-on-canvas/", date: 2024.10, labels: ["sculpture"] },
@@ -341,13 +398,11 @@
       tag.className = "tag";
       tag.textContent = label;
       tag.style.background = LABEL_COLORS[label] || "#000000";
-      tag.style.color = label === "prototype" ? "#000000" : "#ffffff";
+      tag.style.color = DARK_TEXT_LABELS[label] ? "#000000" : "#ffffff";
       return tag;
     }
 
-    // onlyLabel: used by the medium view, where a dual-labeled work gets
-    // one row per label instead of both labels stacked on a single row.
-    function buildEntry(work, onlyLabel) {
+    function buildEntry(work) {
       var a = document.createElement("a");
       a.href = work.href;
       a.setAttribute("data-year", work.date);
@@ -360,9 +415,7 @@
       wrap.appendChild(document.createTextNode(last));
       var stack = document.createElement("span");
       stack.className = "tag-stack";
-      (onlyLabel ? [onlyLabel] : work.labels).forEach(function (label) {
-        stack.appendChild(tagEl(label));
-      });
+      work.labels.forEach(function (label) { stack.appendChild(tagEl(label)); });
       wrap.appendChild(stack);
       a.appendChild(wrap);
       return a;
@@ -384,45 +437,46 @@
       updateScrollbar();
     }
 
-    function renderDefault() {
-      list.innerHTML = "";
-      WORKS.forEach(function (w) { list.appendChild(buildEntry(w, null)); });
-      afterRender();
-    }
     function renderByDate() {
       list.innerHTML = "";
       WORKS.slice().sort(function (a, b) { return b.date - a.date; }).forEach(function (w) {
-        list.appendChild(buildEntry(w, null));
+        list.appendChild(buildEntry(w));
       });
       afterRender();
+    }
+    // a work shows up once here even with two labels (no duplicating rows)
+    // - its sort position is the average of its two labels' alphabetical
+    // spots, so it settles in between those two groups rather than only
+    // under one of them, while its tag-stack still shows both labels.
+    function mediumSortKey(w) {
+      var idxs = w.labels.map(function (label) { return LABELS.indexOf(label); });
+      return idxs.length > 1 ? (idxs[0] + idxs[1]) / 2 : idxs[0];
     }
     function renderByMedium() {
-      // every work that carries two labels appears twice here, once under
-      // each label, so grouping by medium never hides either assignment.
-      var rows = [];
-      WORKS.forEach(function (w) {
-        w.labels.forEach(function (label) { rows.push({ work: w, label: label }); });
-      });
-      rows.sort(function (r1, r2) { return LABELS.indexOf(r1.label) - LABELS.indexOf(r2.label); });
       list.innerHTML = "";
-      rows.forEach(function (r) { list.appendChild(buildEntry(r.work, r.label)); });
+      WORKS.slice().sort(function (a, b) { return mediumSortKey(a) - mediumSortKey(b); }).forEach(function (w) {
+        list.appendChild(buildEntry(w));
+      });
       afterRender();
     }
 
-    renderDefault();
-
-    if (sortMenuEl) {
-      var sortLinks = sortMenuEl.querySelectorAll("a[data-sort]");
-      sortLinks.forEach(function (link) {
-        link.addEventListener("click", function (e) {
-          e.preventDefault();
-          var mode = link.getAttribute("data-sort");
-          sortLinks.forEach(function (l) { l.classList.toggle("active", l === link); });
-          if (mode === "medium") renderByMedium();
-          else renderByDate();
-        });
-      });
+    var sortLinks = sortMenuEl ? sortMenuEl.querySelectorAll("a[data-sort]") : [];
+    function setSortMode(mode) {
+      sortLinks.forEach(function (l) { l.classList.toggle("active", l.getAttribute("data-sort") === mode); });
+      if (mode === "medium") renderByMedium();
+      else renderByDate();
     }
+
+    // starts on "date" - one of the two is always the active sort, never
+    // an unsorted third state.
+    setSortMode("date");
+
+    sortLinks.forEach(function (link) {
+      link.addEventListener("click", function (e) {
+        e.preventDefault();
+        setSortMode(link.getAttribute("data-sort"));
+      });
+    });
 
     // delegated so it keeps working after renderByMedium()/renderByDate()
     // swap in brand-new <a> elements - a per-element listener set up once
