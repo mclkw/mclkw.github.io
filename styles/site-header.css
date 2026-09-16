@@ -50,6 +50,25 @@ html, body {
   color: #000000;
   text-shadow: none;
 }
+/* the Instagram icon at the far right of the top menu - a black outline
+   icon rather than a text link, with the same "grow slightly" hover cue
+   used elsewhere on the site instead of the text links' bold-on-hover. */
+.site-header .ig-link {
+  display: inline-flex;
+  align-items: center;
+  color: #000000;
+  line-height: 0;
+}
+.site-header .ig-link svg {
+  display: block;
+  width: 1.2em;
+  height: 1.2em;
+  transition: transform 0.2s ease;
+}
+.site-header .ig-link:hover svg,
+.site-header .ig-link.touch-hover svg {
+  transform: scale(1.15);
+}
 /* the bottom-right corner menu - the index page's category filter, the
    work page's sort-order toggle - shares this same look. */
 .corner-menu a {
