@@ -121,10 +121,18 @@
     var wrap = document.getElementById("logo");
     var imgs = Array.from(wrap.querySelectorAll("img"));
     var colorIndex = 0;
+    var zTop = 0;
     imgs[0].classList.add("visible");
 
+    // fades the new color in on top of whichever one is currently showing,
+    // rather than crossfading old-out/new-in together - two independent
+    // alpha fades briefly let the page background show through underneath
+    // both layers, which read as the logo going transparent. leaving the
+    // previous image at full opacity underneath costs nothing since the
+    // new one (same silhouette, different fill) fully covers it once faded in.
     function setColor(i) {
-      imgs.forEach(function (img, idx) { img.classList.toggle("visible", idx === i); });
+      imgs[i].style.zIndex = String(++zTop);
+      imgs[i].classList.add("visible");
     }
     function bounceColor() {
       colorIndex = (colorIndex + 1) % imgs.length;
