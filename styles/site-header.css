@@ -22,7 +22,6 @@ html, body {
 .brand {
   font-family: Arial, Helvetica, sans-serif;
   font-weight: 400;
-  text-transform: lowercase;
   color: #000000;
   text-shadow: none;
   font-size: clamp(0.95rem, 1.6vw, 1.35rem);
