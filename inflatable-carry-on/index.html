@@ -47,6 +47,15 @@
     align-items: center;
     height: 100%;
     will-change: transform;
+    /* stays invisible until every image has finished preloading and the
+       track has been built and measured with final sizes - avoids the
+       progressive-reflow flicker of images popping in and resizing one
+       at a time as they trickle in on a slow/cold connection. */
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+  .carousel-track.ready {
+    opacity: 1;
   }
   /* white circle behind the arrow glyph so it stays visible over any part
      of the photo behind it - floats above the track, inset from the
@@ -336,20 +345,6 @@
     }
 
     var items = [];
-    for (var r = 0; r < REPEATS; r++) {
-      IMAGES.forEach(function (name) {
-        var item = document.createElement("div");
-        item.className = "carousel-item";
-        var img = document.createElement("img");
-        img.src = IMAGE_DIR + name;
-        img.alt = name.replace(/\.[^.]+$/, "");
-        img.addEventListener("load", queueRemeasure);
-        item.appendChild(img);
-        track.appendChild(item);
-        items.push(item);
-      });
-    }
-
     var setSize = 0; // px length (width or height) of one full lap through IMAGES, gaps included
     var pos = 0; // current scroll offset, kept hovering around one setSize
 
@@ -403,50 +398,87 @@
         : "translateX(" + (-pos) + "px)";
     }
 
-    // mobile: a plain native-scroll filmstrip - swipe the viewport
-    // itself to move through the images, no hover-driven drift and no
-    // arrows (hidden in CSS under the same hover:none check).
-    if (!isMobile) {
-      var dir = 0;
-      var lastFrameTime = null;
-      var SPEED = 0.4; // average lanes (item+gap widths) per second - gentle, liquid pace
+    function buildItems() {
+      for (var r = 0; r < REPEATS; r++) {
+        IMAGES.forEach(function (name) {
+          var item = document.createElement("div");
+          item.className = "carousel-item";
+          var img = document.createElement("img");
+          img.src = IMAGE_DIR + name;
+          img.alt = name.replace(/\.[^.]+$/, "");
+          img.addEventListener("load", queueRemeasure);
+          item.appendChild(img);
+          track.appendChild(item);
+          items.push(item);
+        });
+      }
+    }
 
-      var tick = function (now) {
-        if (lastFrameTime === null) lastFrameTime = now;
-        var dt = now - lastFrameTime;
-        lastFrameTime = now;
-        if (dir !== 0 && setSize > 0) {
-          var avgLane = setSize / IMAGES.length;
-          pos += dir * SPEED * avgLane * (dt / 1000);
-          if (pos < setSize * 0.5) pos += setSize;
-          else if (pos > setSize * 1.5) pos -= setSize;
-          apply();
-        }
+    function preloadImage(src) {
+      return new Promise(function (resolve) {
+        var probe = new Image();
+        probe.onload = resolve;
+        probe.onerror = resolve; // don't let one bad file block the rest
+        probe.src = src;
+      });
+    }
+
+    // every image is fully decoded before anything is added to the page -
+    // building the strip incrementally instead let each image's now-known
+    // aspect ratio reflow everything after it as it arrived over the
+    // network, which on a slow/cold connection showed up as a chaotic
+    // flicker of images resizing and jumping into place one at a time. a
+    // cached reload has no such delay, which is why the same page looked
+    // fine there.
+    Promise.all(IMAGES.map(function (name) { return preloadImage(IMAGE_DIR + name); })).then(function () {
+      buildItems();
+      measure();
+      track.classList.add("ready");
+
+      // mobile: a plain native-scroll filmstrip - swipe the viewport
+      // itself to move through the images, no hover-driven drift and no
+      // arrows (hidden in CSS under the same hover:none check).
+      if (!isMobile) {
+        var dir = 0;
+        var lastFrameTime = null;
+        var SPEED = 0.4; // average lanes (item+gap widths) per second - gentle, liquid pace
+
+        var tick = function (now) {
+          if (lastFrameTime === null) lastFrameTime = now;
+          var dt = now - lastFrameTime;
+          lastFrameTime = now;
+          if (dir !== 0 && setSize > 0) {
+            var avgLane = setSize / IMAGES.length;
+            pos += dir * SPEED * avgLane * (dt / 1000);
+            if (pos < setSize * 0.5) pos += setSize;
+            else if (pos > setSize * 1.5) pos -= setSize;
+            apply();
+          }
+          requestAnimationFrame(tick);
+        };
         requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
 
-      var setDir = function (next) {
-        dir = next;
-        lastFrameTime = null;
-      };
+        var setDir = function (next) {
+          dir = next;
+          lastFrameTime = null;
+        };
 
-      if (prevBtn) {
-        prevBtn.addEventListener("mouseenter", function () { setDir(-1); });
-        prevBtn.addEventListener("mouseleave", function () { setDir(0); });
+        if (prevBtn) {
+          prevBtn.addEventListener("mouseenter", function () { setDir(-1); });
+          prevBtn.addEventListener("mouseleave", function () { setDir(0); });
+        }
+        if (nextBtn) {
+          nextBtn.addEventListener("mouseenter", function () { setDir(1); });
+          nextBtn.addEventListener("mouseleave", function () { setDir(0); });
+        }
       }
-      if (nextBtn) {
-        nextBtn.addEventListener("mouseenter", function () { setDir(1); });
-        nextBtn.addEventListener("mouseleave", function () { setDir(0); });
-      }
-    }
 
-    measure();
-    window.addEventListener("resize", measure);
-    window.addEventListener("orientationchange", measure);
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(measure);
-    }
+      window.addEventListener("resize", measure);
+      window.addEventListener("orientationchange", measure);
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(measure);
+      }
+    });
   })();
 </script>
 </body>
