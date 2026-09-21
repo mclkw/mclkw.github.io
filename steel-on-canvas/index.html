@@ -175,6 +175,34 @@
     #carouselPrev { top: 1.2vh; bottom: auto; left: 50%; right: auto; }
     #carouselNext { bottom: 1.2vh; top: auto; left: 50%; right: auto; }
   }
+
+  /* touch devices: no hover to drive the arrows, so the viewport itself
+     becomes a plain, natively swipeable filmstrip instead - arrows
+     hidden, momentum scrolling with a gentle snap so it settles on one
+     image at a time. axis follows the same landscape/portrait split as
+     above (script already lays the track out that way). */
+  @media (hover: none) {
+    .carousel-arrow {
+      display: none;
+    }
+    .carousel-viewport {
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x proximity;
+      scrollbar-width: none;
+    }
+    .carousel-viewport::-webkit-scrollbar {
+      display: none;
+    }
+    .carousel-item {
+      scroll-snap-align: center;
+    }
+  }
+  @media (hover: none) and (orientation: portrait) {
+    .carousel-viewport {
+      scroll-snap-type: y proximity;
+    }
+  }
 </style>
 </head>
 <body data-page="" data-corner="top-left">
@@ -247,20 +275,41 @@
   })();
 
   (function () {
-    // a continuously-flowing slideshow rather than a discrete one-step-
-    // at-a-time one: the track holds the image set repeated several
-    // times back to back, and hovering an arrow smoothly slides it in
-    // that direction for as long as the pointer stays there, wrapping
-    // seamlessly between repeats so it can flow indefinitely. every
-    // image is shown at the same cross-axis size (full height in
-    // landscape, full width in portrait) regardless of whether the
-    // original photo is itself landscape or portrait - only the other
-    // dimension varies, scaled to match each image's own aspect ratio.
-    // every picture in the project's folder is included, edge to edge
-    // with no gap between them.
+    // a continuously-flowing slideshow on pointer/mouse devices - the
+    // track holds the image set repeated several times back to back, and
+    // hovering an arrow smoothly slides it in that direction for as long
+    // as the pointer stays there, wrapping seamlessly between repeats so
+    // it can flow indefinitely. on touch devices (no hover to drive it)
+    // the viewport becomes a plain native-scroll filmstrip instead - see
+    // isMobile below. every image is shown at the same cross-axis size
+    // (full height in landscape, full width in portrait) regardless of
+    // whether the original photo is itself landscape or portrait - only
+    // the other dimension varies, scaled to match each image's own
+    // aspect ratio. every picture in the project's folder is included,
+    // edge to edge with no gap between them.
     var IMAGE_DIR = "/images/steel-on-canvas/";
-    var IMAGES = ["Bildschirmfoto 2026-05-26 um 19.47.02-2.png", "IMG_8512 2.jpg", "IMG_8533 2.jpg", "grass.png"];
-    var REPEATS = 3;
+    var IMAGES_RAW = ["Bildschirmfoto 2026-05-26 um 19.47.02-2.png", "IMG_8512 2.jpg", "IMG_8533 2.jpg", "grass.png"];
+
+    // images whose name (ignoring its extension) ends in a run of digits
+    // sort first, ordered by that number - so "xxx_01.png" comes before
+    // "xyz.02.jpg" regardless of extension - with un-numbered images kept
+    // in their original (array) order, after all the numbered ones.
+    function trailingNumber(name) {
+      var base = name.replace(/\.[^.]+$/, "");
+      var m = base.match(/(\d+)$/);
+      return m ? parseInt(m[1], 10) : null;
+    }
+    var IMAGES = IMAGES_RAW
+      .map(function (name, i) { return { name: name, num: trailingNumber(name), i: i }; })
+      .sort(function (a, b) {
+        if ((a.num !== null) !== (b.num !== null)) return a.num !== null ? -1 : 1;
+        if (a.num !== null && a.num !== b.num) return a.num - b.num;
+        return a.i - b.i;
+      })
+      .map(function (o) { return o.name; });
+
+    var isMobile = !!(window.matchMedia && window.matchMedia("(hover: none)").matches);
+    var REPEATS = isMobile ? 1 : 3;
     var viewport = document.getElementById("carouselViewport");
     var track = document.getElementById("carouselTrack");
     var prevBtn = document.getElementById("carouselPrev");
@@ -331,6 +380,10 @@
         }
       });
 
+      // on mobile the browser's own scroll position handles placement -
+      // no lap-length/transform bookkeeping needed.
+      if (isMobile) return;
+
       var setLength = 0;
       for (var i = 0; i < IMAGES.length; i++) {
         var rect = items[i].getBoundingClientRect();
@@ -350,43 +403,42 @@
         : "translateX(" + (-pos) + "px)";
     }
 
-    var dir = 0;
-    var lastFrameTime = null;
-    var SPEED = 0.4; // average lanes (item+gap widths) per second - gentle, liquid pace
+    // mobile: a plain native-scroll filmstrip - swipe the viewport
+    // itself to move through the images, no hover-driven drift and no
+    // arrows (hidden in CSS under the same hover:none check).
+    if (!isMobile) {
+      var dir = 0;
+      var lastFrameTime = null;
+      var SPEED = 0.4; // average lanes (item+gap widths) per second - gentle, liquid pace
 
-    function tick(now) {
-      if (lastFrameTime === null) lastFrameTime = now;
-      var dt = now - lastFrameTime;
-      lastFrameTime = now;
-      if (dir !== 0 && setSize > 0) {
-        var avgLane = setSize / IMAGES.length;
-        pos += dir * SPEED * avgLane * (dt / 1000);
-        if (pos < setSize * 0.5) pos += setSize;
-        else if (pos > setSize * 1.5) pos -= setSize;
-        apply();
-      }
+      var tick = function (now) {
+        if (lastFrameTime === null) lastFrameTime = now;
+        var dt = now - lastFrameTime;
+        lastFrameTime = now;
+        if (dir !== 0 && setSize > 0) {
+          var avgLane = setSize / IMAGES.length;
+          pos += dir * SPEED * avgLane * (dt / 1000);
+          if (pos < setSize * 0.5) pos += setSize;
+          else if (pos > setSize * 1.5) pos -= setSize;
+          apply();
+        }
+        requestAnimationFrame(tick);
+      };
       requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
 
-    function setDir(next) {
-      dir = next;
-      lastFrameTime = null;
-    }
+      var setDir = function (next) {
+        dir = next;
+        lastFrameTime = null;
+      };
 
-    if (prevBtn) {
-      prevBtn.addEventListener("mouseenter", function () { setDir(-1); });
-      prevBtn.addEventListener("mouseleave", function () { setDir(0); });
-      prevBtn.addEventListener("touchstart", function () { setDir(-1); }, { passive: true });
-      prevBtn.addEventListener("touchend", function () { setDir(0); });
-      prevBtn.addEventListener("touchcancel", function () { setDir(0); });
-    }
-    if (nextBtn) {
-      nextBtn.addEventListener("mouseenter", function () { setDir(1); });
-      nextBtn.addEventListener("mouseleave", function () { setDir(0); });
-      nextBtn.addEventListener("touchstart", function () { setDir(1); }, { passive: true });
-      nextBtn.addEventListener("touchend", function () { setDir(0); });
-      nextBtn.addEventListener("touchcancel", function () { setDir(0); });
+      if (prevBtn) {
+        prevBtn.addEventListener("mouseenter", function () { setDir(-1); });
+        prevBtn.addEventListener("mouseleave", function () { setDir(0); });
+      }
+      if (nextBtn) {
+        nextBtn.addEventListener("mouseenter", function () { setDir(1); });
+        nextBtn.addEventListener("mouseleave", function () { setDir(0); });
+      }
     }
 
     measure();
