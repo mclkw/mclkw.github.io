@@ -134,16 +134,57 @@
     color: #000000;
   }
   .project-desc p {
-    margin: 0;
+    margin: 0 0 0.9em;
+  }
+  .project-desc p:last-child {
+    margin-bottom: 0;
+  }
+  /* an optional label naming the medium, sitting above the description
+     text in a heavier weight than the body copy but the same size. */
+  .project-desc-medium {
+    margin: 0 0 0.6em;
+    font-family: 'Arial Black', Arial, sans-serif;
+    font-weight: 900;
+    font-size: inherit;
   }
   /* folded to roughly a paragraph's height by default so it doesn't eat
      into the slideshow above it - expanding grows the bar upward, since
-     it's pinned to the bottom edge. a "more" toggle only appears at all
-     if the real content actually overflows the folded height. */
+     it's pinned to the bottom edge, but only up to half the viewport, so
+     the slideshow always keeps at least half the screen. a "more" toggle
+     only appears at all if the real content actually overflows the
+     folded height; the custom scrollbar (same look as the other pages'
+     lists) only appears if the content still overflows even at that
+     half-page expanded cap. */
+  .project-desc-scroll-wrap {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 8px;
+  }
   .project-desc-inner {
+    flex: 1 1 auto;
+    min-width: 0;
     overflow: hidden;
     max-height: 9em;
     transition: max-height 0.35s ease;
+  }
+  .project-desc-track {
+    display: none;
+    position: relative;
+    flex: 0 0 8px;
+    width: 8px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.12);
+    cursor: pointer;
+  }
+  .project-desc-thumb {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+    background: #000000;
   }
   .project-desc-toggle {
     display: none;
@@ -273,10 +314,15 @@
 
 <div class="project-bottom" id="projectBottom">
   <div class="project-desc" id="projectDesc">
-    <div class="project-desc-inner" id="projectDescInner">
-      <p>When we hope for something to happen, we try to calculate our favours: in manic repetition, we re-evaluate how our best actions could possibly add to the odds. The slot game installation unknown return to player examines this probabilistic speculation we engage in under uncertainty - and the illusions that arise in the process - as core components of hope. It frames hopeful agency not as optimism but as a wager: a risky impulse to keep investing in progressions whose outcomes are often beyond our control. 
-Constructed from aluminium profiles, faux leather bolstering, arcade electronics and antique fittings, the machine component of the installation examines modern gambling hardware as a medium of this tension. Engaging with the machine, visitors are invited to play Reapers of Fortune: Feral Frenzy, a virtual slot game whose logic and objectives remain deliberately opaque. Entering the familiar visual chaos of gambling without the goal of winning a jackpot leaves room to explore: the interface for alternative goals to hope for - and the agency needed to succeed. 
-</p>
+    <div class="project-desc-medium">(slot game installation for Donaufestival 2026)</div>
+    <div class="project-desc-scroll-wrap" id="projectDescScrollWrap">
+      <div class="project-desc-inner" id="projectDescInner">
+        <p>When we hope for something to happen, we try to calculate our favours: in manic repetition, we re-evaluate how our best actions could possibly add to the odds. The slot game installation unknown return to player examines this probabilistic speculation we engage in under uncertainty - and the illusions that arise in the process - as core components of hope. It frames hopeful agency not as optimism but as a wager: a risky impulse to keep investing in progressions whose outcomes are often beyond our control.</p>
+        <p>Constructed from aluminium profiles, faux leather bolstering, arcade electronics and antique fittings, the machine component of the installation examines modern gambling hardware as a medium of this tension. Engaging with the machine, visitors are invited to play Reapers of Fortune: Feral Frenzy, a virtual slot game whose logic and objectives remain deliberately opaque. Entering the familiar visual chaos of gambling without the goal of winning a jackpot leaves room to explore: the interface for alternative goals to hope for - and the agency needed to succeed.</p>
+      </div>
+      <div class="project-desc-track" id="projectDescTrack">
+        <div class="project-desc-thumb" id="projectDescThumb"></div>
+      </div>
     </div>
     <button type="button" class="project-desc-toggle" id="projectDescToggle" aria-expanded="false">more</button>
   </div>
@@ -348,39 +394,106 @@ Constructed from aluminium profiles, faux leather bolstering, arcade electronics
     // description doesn't eat into the slideshow above it - only grows
     // a "more" toggle if the real content actually overflows that
     // height (this placeholder text doesn't, so nothing shows). the bar
-    // is pinned to the bottom edge, so expanding it grows upward; the
-    // ResizeObserver above keeps the slideshow's height in sync as that
-    // happens.
+    // is pinned to the bottom edge, so expanding it grows upward, but
+    // only up to half the viewport - past that the text area itself
+    // scrolls (with the same custom scrollbar used on the other pages'
+    // lists) instead of pushing the slideshow any further. the
+    // ResizeObserver above keeps the slideshow's height in sync as any
+    // of this happens.
     var inner = document.getElementById("projectDescInner");
     var toggle = document.getElementById("projectDescToggle");
+    var track = document.getElementById("projectDescTrack");
+    var thumb = document.getElementById("projectDescThumb");
     if (!inner || !toggle) return;
 
     var FOLDED_EM = 9; // roughly a full paragraph at this text's line-height
+    var EXPANDED_MAX_VH = 0.5; // expanding never covers more than half the viewport
     var expanded = false;
     var foldedPx = 0;
     var fullPx = 0;
+    var expandedPx = 0;
+
+    function updateScrollbar() {
+      if (!track || !thumb) return;
+      var scrollable = inner.scrollHeight - inner.clientHeight;
+      if (!expanded || scrollable <= 1) {
+        track.style.display = "none";
+        inner.style.overflowY = "hidden";
+        return;
+      }
+      inner.style.overflowY = "auto";
+      track.style.display = "block";
+      var trackH = track.clientHeight;
+      var ratioVisible = Math.min(1, inner.clientHeight / inner.scrollHeight);
+      var thumbH = Math.min(trackH, Math.max(20, trackH * ratioVisible));
+      thumb.style.height = thumbH + "px";
+      var maxThumbTop = trackH - thumbH;
+      var scrollRatio = scrollable > 0 ? inner.scrollTop / scrollable : 0;
+      thumb.style.top = (scrollRatio * maxThumbTop) + "px";
+    }
 
     function measure() {
       var fontSize = parseFloat(getComputedStyle(inner).fontSize) || 16;
       foldedPx = Math.round(FOLDED_EM * fontSize);
+      expandedPx = Math.round(window.innerHeight * EXPANDED_MAX_VH);
       inner.style.maxHeight = "none";
+      inner.style.overflowY = "hidden";
       fullPx = inner.scrollHeight;
       if (fullPx > foldedPx + 4) {
         toggle.style.display = "block";
-        inner.style.maxHeight = (expanded ? fullPx : foldedPx) + "px";
+        inner.style.maxHeight = (expanded ? Math.min(fullPx, expandedPx) : foldedPx) + "px";
       } else {
         toggle.style.display = "none";
         expanded = false;
         inner.style.maxHeight = "none";
       }
+      updateScrollbar();
     }
 
     toggle.addEventListener("click", function () {
       expanded = !expanded;
-      inner.style.maxHeight = (expanded ? fullPx : foldedPx) + "px";
+      inner.style.maxHeight = (expanded ? Math.min(fullPx, expandedPx) : foldedPx) + "px";
       toggle.textContent = expanded ? "less" : "more";
       toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+      // give the max-height transition time to settle before reading the
+      // scrolled/scrollable extents off of it.
+      window.setTimeout(updateScrollbar, 370);
     });
+
+    if (track && thumb) {
+      inner.addEventListener("scroll", updateScrollbar);
+
+      var dragging = false, startY = 0, startScroll = 0;
+      thumb.addEventListener("mousedown", function (e) {
+        dragging = true;
+        startY = e.clientY;
+        startScroll = inner.scrollTop;
+        e.preventDefault();
+      });
+      window.addEventListener("mousemove", function (e) {
+        if (!dragging) return;
+        var trackH = track.clientHeight;
+        var thumbH = thumb.offsetHeight;
+        var maxThumbTop = trackH - thumbH;
+        var scrollable = inner.scrollHeight - inner.clientHeight;
+        if (maxThumbTop <= 0 || scrollable <= 0) return;
+        var deltaScroll = ((e.clientY - startY) / maxThumbTop) * scrollable;
+        inner.scrollTop = startScroll + deltaScroll;
+      });
+      window.addEventListener("mouseup", function () { dragging = false; });
+
+      track.addEventListener("mousedown", function (e) {
+        if (e.target === thumb) return;
+        var rect = track.getBoundingClientRect();
+        var clickY = e.clientY - rect.top;
+        var thumbH = thumb.offsetHeight;
+        var maxThumbTop = track.clientHeight - thumbH;
+        var scrollable = inner.scrollHeight - inner.clientHeight;
+        if (maxThumbTop <= 0 || scrollable <= 0) return;
+        var targetTop = Math.min(Math.max(0, clickY - thumbH / 2), maxThumbTop);
+        inner.scrollTop = (targetTop / maxThumbTop) * scrollable;
+      });
+    }
 
     measure();
     window.addEventListener("resize", measure);
