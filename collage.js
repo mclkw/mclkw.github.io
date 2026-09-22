@@ -1,56 +1,112 @@
 (function () {
+  var IMAGE_DIR = "/images/frontpage/";
   var IMAGES = [
-    "expired.png", "well.png", "football.png",
-    "pigshite.png", "zine.png", "zine2.png", "kirmes.png", "pigeon.png",
-    "Wirbelwind.png", "slots.png", "cards.png", "printer.png",
-    "workingarts.png", "slots2.jpeg", "reiter.png", "transhuman.png",
-    "funzel1.png", "funzel2.png", "printer2.png", "stage1.png",
-    "Wirbelwind2.png", "masken1.png", "masken4.png", "pigeon3.png",
-    "posthuman2.png", "posthuman4.png", "slots3.png", "slots4.png", "slots5.png",
-    "reiter3.png", "posthuman.png", "cards2.png", "airbrush.png", "steel.png"
+    "Upcycling.png", "Wirbelwind.png", "Wirbelwind2.png",
+    "aesthetics_in_scientific_understanding.png", "airbrush.png",
+    "amateur.png", "amateur2.png",
+    "business_cards.png", "business_cards2.png",
+    "commoning_grief.png", "commoning_grief1.png", "commoning_grief2.png",
+    "commoning_grief4.png", "commoning_grief5.png",
+    "epistemic_gamification.png",
+    "funzel1.png", "funzel2.png",
+    "gartenbuehne.png",
+    "inflatable_carryon.png", "inflatable_carryon02.png",
+    "kirmes.png",
+    "masks.png", "masks1.png",
+    "one_day1.png", "one_day2.png",
+    "pigeon.png", "pigeon2.png", "pigeon3.png",
+    "posthuman.png", "posthuman2.png", "posthuman4.png",
+    "stars01.png", "stars02.png",
+    "steel.png",
+    "unknown_return.jpeg", "unknown_return.png", "unknown_return01.png",
+    "unknown_return02.png", "unknown_return04.png", "unknown_return05.png",
+    "unknown_return06.png"
   ];
-  // where each image links to - whichever subpage actually features it
+  // where each image links to - whichever subpage actually features it.
+  // wirbelwind, upcycling, airbrush and kirmes have no page of their own
+  // (yet), so they're left out here and just fall back to "#" below.
   var LINKS = {
-    "expired.png": "/commoning-grief/",
-    "well.png": "/commoning-grief/",
-    "football.png": "/commoning-grief/"
+    "aesthetics_in_scientific_understanding.png": "/aesthetics-in-scientific-understanding/",
+    "amateur.png": "/amateur-home-making/",
+    "amateur2.png": "/amateur-home-making/",
+    "business_cards.png": "/business-cards/",
+    "business_cards2.png": "/business-cards/",
+    "commoning_grief.png": "/commoning-grief/",
+    "commoning_grief1.png": "/commoning-grief/",
+    "commoning_grief2.png": "/commoning-grief/",
+    "commoning_grief4.png": "/commoning-grief/",
+    "commoning_grief5.png": "/commoning-grief/",
+    "epistemic_gamification.png": "/epistemic-gamification/",
+    "funzel1.png": "/die-funzel/",
+    "funzel2.png": "/die-funzel/",
+    "gartenbuehne.png": "/live-from-earth/",
+    "inflatable_carryon.png": "/inflatable-carry-on/",
+    "inflatable_carryon02.png": "/inflatable-carry-on/",
+    "masks.png": "/masks-for-istanbul-ghetto-club/",
+    "masks1.png": "/masks-for-istanbul-ghetto-club/",
+    "one_day1.png": "/one-day-all-dreams/",
+    "one_day2.png": "/one-day-all-dreams/",
+    "pigeon.png": "/pigeon-oracle/",
+    "pigeon2.png": "/pigeon-oracle/",
+    "pigeon3.png": "/pigeon-oracle/",
+    "posthuman.png": "/posthuman-fragments/",
+    "posthuman2.png": "/posthuman-fragments/",
+    "posthuman4.png": "/posthuman-fragments/",
+    "stars01.png": "/2-half-stars/",
+    "stars02.png": "/2-half-stars/",
+    "steel.png": "/steel-on-canvas/",
+    "unknown_return.jpeg": "/unknown-return-to-player/",
+    "unknown_return.png": "/unknown-return-to-player/",
+    "unknown_return01.png": "/unknown-return-to-player/",
+    "unknown_return02.png": "/unknown-return-to-player/",
+    "unknown_return04.png": "/unknown-return-to-player/",
+    "unknown_return05.png": "/unknown-return-to-player/",
+    "unknown_return06.png": "/unknown-return-to-player/"
   };
-  // which corner-menu filter category each image belongs to
+  // which corner-menu filter category each image belongs to (art =
+  // "visual", other = "applied", research = "research" in the menu labels)
   var CATEGORIES = {
-    "expired.png": "research",
-    "well.png": "research",
-    "football.png": "research",
-    "pigshite.png": "other",
-    "zine.png": "research",
-    "zine2.png": "research",
-    "kirmes.png": "art",
-    "pigeon.png": "other",
+    "Upcycling.png": "other",
     "Wirbelwind.png": "other",
-    "slots.png": "art",
-    "cards.png": "art",
-    "printer.png": "art",
-    "workingarts.png": "research",
-    "slots2.jpeg": "art",
-    "reiter.png": "art",
-    "transhuman.png": "art",
-    "funzel1.png": "other",
-    "funzel2.png": "other",
-    "printer2.png": "art",
-    "stage1.png": "other",
     "Wirbelwind2.png": "other",
-    "masken1.png": "other",
-    "masken4.png": "other",
+    "aesthetics_in_scientific_understanding.png": "research",
+    "airbrush.png": "art",
+    "amateur.png": "research",
+    "amateur2.png": "research",
+    "business_cards.png": "art",
+    "business_cards2.png": "art",
+    "commoning_grief.png": "research",
+    "commoning_grief1.png": "research",
+    "commoning_grief2.png": "research",
+    "commoning_grief4.png": "research",
+    "commoning_grief5.png": "research",
+    "epistemic_gamification.png": "research",
+    "funzel1.png": "research",
+    "funzel2.png": "research",
+    "gartenbuehne.png": "other",
+    "inflatable_carryon.png": "art",
+    "inflatable_carryon02.png": "art",
+    "kirmes.png": "art",
+    "masks.png": "other",
+    "masks1.png": "other",
+    "one_day1.png": "other",
+    "one_day2.png": "other",
+    "pigeon.png": "other",
+    "pigeon2.png": "other",
     "pigeon3.png": "other",
+    "posthuman.png": "other",
     "posthuman2.png": "other",
     "posthuman4.png": "other",
-    "slots3.png": "art",
-    "slots4.png": "art",
-    "slots5.png": "art",
-    "reiter3.png": "art",
-    "posthuman.png": "other",
-    "cards2.png": "art",
-    "airbrush.png": "art",
-    "steel.png": "art"
+    "stars01.png": "art",
+    "stars02.png": "art",
+    "steel.png": "art",
+    "unknown_return.jpeg": "art",
+    "unknown_return.png": "art",
+    "unknown_return01.png": "art",
+    "unknown_return02.png": "art",
+    "unknown_return04.png": "art",
+    "unknown_return05.png": "art",
+    "unknown_return06.png": "art"
   };
   var RAYS = 64;
   var ALPHA_THRESH = 10;
@@ -777,7 +833,7 @@
           });
         };
         img.onerror = function () { resolve(null); };
-        img.src = "/images/" + name;
+        img.src = IMAGE_DIR + name;
       });
     })).then(function (results) {
       results.filter(Boolean).forEach(function (r, idx) {
