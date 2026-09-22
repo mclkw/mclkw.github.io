@@ -135,6 +135,27 @@
   .project-desc p {
     margin: 0;
   }
+  /* folded to roughly a paragraph's height by default so it doesn't eat
+     into the slideshow above it - expanding grows the bar upward, since
+     it's pinned to the bottom edge. a "more" toggle only appears at all
+     if the real content actually overflows the folded height. */
+  .project-desc-inner {
+    overflow: hidden;
+    max-height: 9em;
+    transition: max-height 0.35s ease;
+  }
+  .project-desc-toggle {
+    display: none;
+    margin: 0.5em 0 0;
+    padding: 0;
+    border: none;
+    background: none;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: inherit;
+    color: #000000;
+    text-decoration: underline;
+    cursor: pointer;
+  }
   .project-title {
     flex: 0 0 auto;
     text-align: right;
@@ -145,6 +166,7 @@
     font-size: clamp(1.6rem, 4.2vw, 3rem);
     line-height: 1.05;
     letter-spacing: -0.01em;
+    text-wrap: balance;
   }
 
   @media (orientation: portrait) {
@@ -186,12 +208,20 @@
   }
 
   /* touch devices: no hover to drive the arrows, so the viewport itself
-     becomes a plain, natively swipeable filmstrip instead - arrows
-     hidden, momentum scrolling with a gentle snap so it settles on one
-     image at a time. axis follows the same landscape/portrait split as
-     above (script already lays the track out that way). */
+     becomes a plain, natively swipeable filmstrip instead - the arrows
+     stay visible as pure affordances (not clickable) showing which way
+     there's still more to scroll, and hide themselves at whichever end
+     has nothing further that way (script-driven; starts assuming the
+     first image, so the prev arrow defaults to hidden here). momentum
+     scrolling with a gentle snap so it settles on one image at a time.
+     axis follows the same landscape/portrait split as above (script
+     already lays the track out that way). */
   @media (hover: none) {
     .carousel-arrow {
+      pointer-events: none;
+      cursor: default;
+    }
+    #carouselPrev {
       display: none;
     }
     .carousel-viewport {
@@ -222,7 +252,7 @@
   <nav class="menu">
     <a href="/work/" data-page="work">index</a>
     <a href="/about/" data-page="about">about</a>
-    <a href="mailto:lea.wuertenberger@gmail.com" data-page="contact">e-mail</a>
+    <a href="mailto:aka@lkw.fyi" data-page="contact">e-mail</a>
     <a href="https://www.instagram.com/aka.lkw/" target="_blank" rel="noopener noreferrer" class="ig-link" aria-label="Instagram">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4.6" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.3" cy="6.7" r="0.9" fill="currentColor"/></svg>
     </a>
@@ -238,8 +268,11 @@
 </div>
 
 <div class="project-bottom" id="projectBottom">
-  <div class="project-desc">
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+  <div class="project-desc" id="projectDesc">
+    <div class="project-desc-inner" id="projectDescInner">
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+    </div>
+    <button type="button" class="project-desc-toggle" id="projectDescToggle" aria-expanded="false">more</button>
   </div>
   <div class="project-title">pigeon oracle</div>
 </div>
@@ -248,6 +281,22 @@
 <script src="/menu.js"></script>
 <script src="/corner-logo.js"></script>
 <script>
+  (function () {
+    // prevents a long title's last line from ending in a single lonely
+    // word (an orphan) by gluing the final two words together with a
+    // non-breaking space - independent of exactly where the browser
+    // ends up wrapping the rest of it. text-wrap: balance (in the CSS)
+    // handles the overall line balance.
+    var titleEl = document.querySelector(".project-title");
+    if (titleEl) {
+      var words = titleEl.textContent.trim().split(/\s+/);
+      if (words.length > 1) {
+        var last = words.pop();
+        titleEl.textContent = words.join(" ") + " " + last;
+      }
+    }
+  })();
+
   (function () {
     // keep --header-h in sync (same pattern used site-wide).
     var headerEl = document.querySelector(".site-header");
@@ -267,7 +316,9 @@
   (function () {
     // the slideshow fills down to the bottom bar's own live height -
     // recomputed whenever that can change (bottom bar wrapping in
-    // portrait, window resize...).
+    // portrait, window resize, the description folding open/closed...).
+    // a ResizeObserver catches all of those uniformly, including the
+    // fold toggle, instead of wiring each one up by hand.
     var bottomEl = document.getElementById("projectBottom");
     if (!bottomEl) return;
 
@@ -281,6 +332,55 @@
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(layout);
     }
+    if (window.ResizeObserver) {
+      new ResizeObserver(layout).observe(bottomEl);
+    }
+  })();
+
+  (function () {
+    // folded to roughly a paragraph's height by default so the
+    // description doesn't eat into the slideshow above it - only grows
+    // a "more" toggle if the real content actually overflows that
+    // height (this placeholder text doesn't, so nothing shows). the bar
+    // is pinned to the bottom edge, so expanding it grows upward; the
+    // ResizeObserver above keeps the slideshow's height in sync as that
+    // happens.
+    var inner = document.getElementById("projectDescInner");
+    var toggle = document.getElementById("projectDescToggle");
+    if (!inner || !toggle) return;
+
+    var FOLDED_EM = 9; // roughly a full paragraph at this text's line-height
+    var expanded = false;
+    var foldedPx = 0;
+    var fullPx = 0;
+
+    function measure() {
+      var fontSize = parseFloat(getComputedStyle(inner).fontSize) || 16;
+      foldedPx = Math.round(FOLDED_EM * fontSize);
+      inner.style.maxHeight = "none";
+      fullPx = inner.scrollHeight;
+      if (fullPx > foldedPx + 4) {
+        toggle.style.display = "block";
+        inner.style.maxHeight = (expanded ? fullPx : foldedPx) + "px";
+      } else {
+        toggle.style.display = "none";
+        expanded = false;
+        inner.style.maxHeight = "none";
+      }
+    }
+
+    toggle.addEventListener("click", function () {
+      expanded = !expanded;
+      inner.style.maxHeight = (expanded ? fullPx : foldedPx) + "px";
+      toggle.textContent = expanded ? "less" : "more";
+      toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+    });
+
+    measure();
+    window.addEventListener("resize", measure);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(measure);
+    }
   })();
 
   (function () {
@@ -288,8 +388,10 @@
     // track holds the image set repeated several times back to back, and
     // hovering an arrow smoothly slides it in that direction for as long
     // as the pointer stays there, wrapping seamlessly between repeats so
-    // it can flow indefinitely. on touch devices (no hover to drive it)
-    // the viewport becomes a plain native-scroll filmstrip instead - see
+    // it can flow indefinitely. clicking an arrow additionally gives it
+    // a direct function: a quick, smoothly-eased slide straight to the
+    // next/previous image. on touch devices (no hover to drive it) the
+    // viewport becomes a plain native-scroll filmstrip instead - see
     // isMobile below. every image is shown at the same cross-axis size
     // (full height in landscape, full width in portrait) regardless of
     // whether the original photo is itself landscape or portrait - only
@@ -435,19 +537,17 @@
       measure();
       track.classList.add("ready");
 
-      // mobile: a plain native-scroll filmstrip - swipe the viewport
-      // itself to move through the images, no hover-driven drift and no
-      // arrows (hidden in CSS under the same hover:none check).
       if (!isMobile) {
         var dir = 0;
         var lastFrameTime = null;
         var SPEED = 0.4; // average lanes (item+gap widths) per second - gentle, liquid pace
+        var stepping = false; // true while a click-triggered step animation plays
 
         var tick = function (now) {
           if (lastFrameTime === null) lastFrameTime = now;
           var dt = now - lastFrameTime;
           lastFrameTime = now;
-          if (dir !== 0 && setSize > 0) {
+          if (!stepping && dir !== 0 && setSize > 0) {
             var avgLane = setSize / IMAGES.length;
             pos += dir * SPEED * avgLane * (dt / 1000);
             if (pos < setSize * 0.5) pos += setSize;
@@ -463,20 +563,84 @@
           lastFrameTime = null;
         };
 
+        // clicking an arrow gives it a direct function beyond hovering:
+        // a quick, smoothly-eased slide straight to the next/previous
+        // image, using a real CSS transition rather than the per-frame
+        // drift math above (paused via `stepping` for the duration so
+        // the two don't fight over the same transform).
+        var STEP_MS = 550;
+        function stepTo(direction) {
+          if (setSize <= 0 || stepping) return;
+          stepping = true;
+          var avgLane = setSize / IMAGES.length;
+          pos += direction * avgLane;
+          track.style.transition = "transform " + STEP_MS + "ms cubic-bezier(.22,1,.36,1)";
+          apply();
+          window.setTimeout(function () {
+            track.style.transition = "";
+            if (pos < setSize * 0.5) pos += setSize;
+            else if (pos > setSize * 1.5) pos -= setSize;
+            apply();
+            stepping = false;
+          }, STEP_MS);
+        }
+
         if (prevBtn) {
           prevBtn.addEventListener("mouseenter", function () { setDir(-1); });
           prevBtn.addEventListener("mouseleave", function () { setDir(0); });
+          prevBtn.addEventListener("click", function () { stepTo(-1); });
         }
         if (nextBtn) {
           nextBtn.addEventListener("mouseenter", function () { setDir(1); });
           nextBtn.addEventListener("mouseleave", function () { setDir(0); });
+          nextBtn.addEventListener("click", function () { stepTo(1); });
         }
-      }
 
-      window.addEventListener("resize", measure);
-      window.addEventListener("orientationchange", measure);
-      if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(measure);
+        window.addEventListener("resize", measure);
+        window.addEventListener("orientationchange", measure);
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(measure);
+        }
+      } else {
+        // mobile: a plain native-scroll filmstrip - swipe the viewport
+        // itself to move through the images. the arrows here are pure
+        // affordances (pointer-events: none in CSS), not real controls -
+        // each hides itself once there's nothing further that way, so
+        // people can see at a glance that (and which way) it scrolls.
+        // always starts at the first image regardless of any browser
+        // scroll-snap quirk on load.
+        viewport.scrollLeft = 0;
+        viewport.scrollTop = 0;
+
+        function updateEdgeArrows() {
+          var portrait = isPortrait();
+          var scrollPos = portrait ? viewport.scrollTop : viewport.scrollLeft;
+          var extent = portrait
+            ? viewport.scrollHeight - viewport.clientHeight
+            : viewport.scrollWidth - viewport.clientWidth;
+          var EDGE = 2;
+          if (!prevBtn || !nextBtn) return;
+          if (extent <= EDGE) {
+            prevBtn.style.display = "none";
+            nextBtn.style.display = "none";
+            return;
+          }
+          prevBtn.style.display = scrollPos <= EDGE ? "none" : "flex";
+          nextBtn.style.display = scrollPos >= extent - EDGE ? "none" : "flex";
+        }
+
+        function mobileSync() {
+          measure();
+          updateEdgeArrows();
+        }
+
+        updateEdgeArrows();
+        viewport.addEventListener("scroll", updateEdgeArrows, { passive: true });
+        window.addEventListener("resize", mobileSync);
+        window.addEventListener("orientationchange", mobileSync);
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(mobileSync);
+        }
       }
     });
   })();
