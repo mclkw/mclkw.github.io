@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LKW.fyi — unknown return to player</title>
+<title>LKW.fyi — i think i found my practice</title>
 <meta name="description" content="Lea Kiri Wyrger is a cross-disciplinary artist and researcher based between Vienna and Berlin.">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="stylesheet" href="/styles/menu.css">
@@ -322,12 +322,8 @@
   <div class="project-desc" id="projectDesc">
     <div class="project-desc-scroll-wrap" id="projectDescScrollWrap">
       <div class="project-desc-inner" id="projectDescInner">
-        <p class="project-desc-meta">slot game installation · aluminium profiles, faux leather, arcade electronics, antique fittings, Unity 2D · Donaufestival, Krems · 2026</p>
-        <p>When we hope for something to happen, we try to calculate our favours: in manic repetition, we re-evaluate how our best actions could possibly add to the odds. The slot game installation <strong>unknown return to player</strong> examines this probabilistic speculation under uncertainty, and the illusions that arise in the process, as core components of hope. It frames hopeful agency not as optimism but as a wager: a risky impulse to keep investing in progressions whose outcomes are often beyond our control.</p>
-        <p>Constructed from aluminium profiles, faux leather bolstering, arcade electronics and antique fittings, the machine examines modern gambling hardware as a medium of this tension. Visitors are invited to play Reaper of Fortune: Feral Frenzy, a virtual slot game whose logic and objectives remain deliberately opaque. Entering the familiar visual chaos of gambling without the goal of winning a jackpot leaves room to explore the interface for alternative things to hope for, and the agency needed to achieve them.</p>
-        <p>In gambling, return to player (RTP) refers to the percentage of wagered money a slot game is programmed to pay back to players over time. It expresses a long-term statistical balance, not the outcome of any single instance of play. From the player's perspective, each spin unfolds within underdetermined odds: despite the temptation to speculate, any concrete expectation is illusory.</p>
-        <p>This dynamic mirrors the condition of hope in particularly dark environments. Like RTP, this tragic variant of hope operates in the gap between individual experience and collective probability, between what might happen this time and what is structured to occur on average. While causal patterns emerge in retrospect, in the moment of action we operate at best under the illusion of control, sustained by the belief that persistence will, over time, reveal meaningful correlations. Yet the comparison is also a contrast: unlike the transparent, predefined stochastics of gambling machinery, the complexity of our real situation doesn't allow for clean math. Even about baseline probabilities, we often lack data.</p>
-        <p>I derived the visual framework of the game from medieval manuscript illuminations in a generative image-to-image workflow. Alongside metaphorical scenes of fate and fortune, the illuminated margins of medieval manuscripts produced a surplus of inexplicable creatures: hybrid beasts and odd animals that construct an eerie reading between the lines. These beasts were not just ornamental. Medieval illuminators worked on speculative depiction with limited resources and knowledge. Many animals look strange to us because their makers had never seen an accurate representation of the species, while other creatures represent counterfactual threats, attempts to grasp abstract dangers. The theme of Reaper of Fortune: Feral Frenzy is thus a cosmology of epistemic havoc, reconstructed with probabilistic methods that themselves depend on calculated speculation. Speculative characters are fused with speculative game dynamics in Unity 2D to create a game specifically about the feelings involved in speculation.</p>
+        <p class="project-desc-meta">poster series · ComfyUI-generated images, A2 · Angewandte Festival, Vienna · 2026</p>
+        <p>At art school, sooner or later everyone is confronted with answering one question: so what's your practice? This poster series reflects satirically on this misguided inquiry describing modes of production in analogy to imaginary fun-fair rides. Each one turns a familiar way of working with digital technologies in the art world into an attraction: self-referential burial in theory, repetitive dialectics, romantic escapism. Each ride is a little absurd, a little dangerous, and somewhat hard to resist.</p>
       </div>
       <div class="project-desc-track" id="projectDescTrack">
         <div class="project-desc-thumb" id="projectDescThumb"></div>
@@ -335,7 +331,7 @@
     </div>
     <button type="button" class="project-desc-toggle" id="projectDescToggle" aria-expanded="false">more</button>
   </div>
-  <div class="project-title">unknown return to player</div>
+  <div class="project-title">i think i found my practice</div>
 </div>
 
 <script src="/bounce.js"></script>
@@ -353,7 +349,7 @@
       var words = titleEl.textContent.trim().split(/\s+/);
       if (words.length > 1) {
         var last = words.pop();
-        titleEl.textContent = words.join(" ") + " " + last;
+        titleEl.textContent = words.join(" ") + " " + last;
       }
     }
   })();
@@ -402,13 +398,12 @@
     // folded to roughly a paragraph's height by default so the
     // description doesn't eat into the slideshow above it - only grows
     // a "more" toggle if the real content actually overflows that
-    // height (this placeholder text doesn't, so nothing shows). the bar
-    // is pinned to the bottom edge, so expanding it grows upward, but
-    // only up to half the viewport - past that the text area itself
-    // scrolls (with the same custom scrollbar used on the other pages'
-    // lists) instead of pushing the slideshow any further. the
-    // ResizeObserver above keeps the slideshow's height in sync as any
-    // of this happens.
+    // height. the bar is pinned to the bottom edge, so expanding it
+    // grows upward, but only up to half the viewport - past that the
+    // text area itself scrolls (with the same custom scrollbar used on
+    // the other pages' lists) instead of pushing the slideshow any
+    // further. the ResizeObserver above keeps the slideshow's height in
+    // sync as any of this happens.
     var inner = document.getElementById("projectDescInner");
     var toggle = document.getElementById("projectDescToggle");
     var track = document.getElementById("projectDescTrack");
@@ -526,8 +521,8 @@
     // the other dimension varies, scaled to match each image's own
     // aspect ratio. every picture in the project's folder is included,
     // edge to edge with no gap between them.
-    var IMAGE_DIR = "/images/unknown-return-to-player/";
-    var IMAGES_RAW = ["IMG_01.JPG", "IMG_02.jpg", "IMG_03.jpg", "slots_04.JPG", "slots_05.JPG", "slots_06.jpg", "slots_07.png", "slots_08.png", "slots_10.jpeg", "slots_11.png", "slots_12.jpg", "slots_13.jpeg", "slots_14.png", "slots_15.jpg", "DSC00817.JPG"];
+    var IMAGE_DIR = "/images/i-think-i-found-my-practice/";
+    var IMAGES_RAW = ["Practice_01.jpg", "Practice_02.jpeg", "Practice_03.jpg"];
 
     // images whose name (ignoring its extension) ends in a run of digits
     // sort first, ordered by that number - so "xxx_01.png" comes before

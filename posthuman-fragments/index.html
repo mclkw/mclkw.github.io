@@ -167,6 +167,12 @@
     overflow: hidden;
     max-height: 9em;
     transition: max-height 0.35s ease;
+    scrollbar-width: none;
+  }
+  .project-desc-inner::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
   }
   .project-desc-track {
     display: none;
@@ -316,7 +322,8 @@
   <div class="project-desc" id="projectDesc">
     <div class="project-desc-scroll-wrap" id="projectDescScrollWrap">
       <div class="project-desc-inner" id="projectDescInner">
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+        <p class="project-desc-meta">costume design · Potsdamer Tanztage · choreography by Stefanie Alf · 2022</p>
+        <p>How present is a body in virtual space? How absent is someone we only hear on the phone? <strong>posthuman fragments</strong> transfers the conditions of digital space into the physical space of a multi-storey car park. Two dancers and a musician are spread across three levels, unable to see one another, and must coordinate through sound and intuition alone. Like the improvised movement and music, my costumes explore how bodies separated by distance and technology can still sync up. They are linked through forces the performers share even when apart, such as gravity, the reflection of light and a common set of materials: a kind of connectedness in physical absence.</p>
       </div>
       <div class="project-desc-track" id="projectDescTrack">
         <div class="project-desc-thumb" id="projectDescThumb"></div>
@@ -516,7 +523,7 @@
     // aspect ratio. every picture in the project's folder is included,
     // edge to edge with no gap between them.
     var IMAGE_DIR = "/images/posthuman-fragments/";
-    var IMAGES_RAW = ["posthuman01.jpg", "posthuman02.jpg", "posthuman03.jpg", "posthuman04.jpg", "posthuman05.jpg", "posthuman06.jpg", "posthuman07.jpg", "posthuman08.jpg", "posthuman09.jpg"];
+    var IMAGES_RAW = ["posthuman01.jpg", "posthuman02.jpg", "posthuman03.jpg", "posthuman04.jpg", "posthuman05.jpg", "posthuman06.jpg", "posthuman07.jpg", "posthuman08.jpg", "posthuman09.jpg", "posthuman10.png"];
 
     // images whose name (ignoring its extension) ends in a run of digits
     // sort first, ordered by that number - so "xxx_01.png" comes before
@@ -537,7 +544,7 @@
       .map(function (o) { return o.name; });
 
     var isMobile = !!(window.matchMedia && window.matchMedia("(hover: none)").matches);
-    var REPEATS = isMobile ? 1 : 3;
+    var REPEATS = (isMobile || IMAGES.length <= 1) ? 1 : 3;
     var viewport = document.getElementById("carouselViewport");
     var track = document.getElementById("carouselTrack");
     var prevBtn = document.getElementById("carouselPrev");
@@ -653,6 +660,20 @@
       buildItems();
       measure();
       track.classList.add("ready");
+
+      // a single image needs no repeats, no drift/scroll and no
+      // arrows - there's nowhere else to go, so it just sits there,
+      // centered and sized like any other slide.
+      if (IMAGES.length <= 1) {
+        if (prevBtn) prevBtn.style.display = "none";
+        if (nextBtn) nextBtn.style.display = "none";
+        window.addEventListener("resize", measure);
+        window.addEventListener("orientationchange", measure);
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(measure);
+        }
+        return;
+      }
 
       if (!isMobile) {
         var dir = 0;

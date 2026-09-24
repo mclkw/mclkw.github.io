@@ -167,6 +167,12 @@
     overflow: hidden;
     max-height: 9em;
     transition: max-height 0.35s ease;
+    scrollbar-width: none;
+  }
+  .project-desc-inner::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
   }
   .project-desc-track {
     display: none;
@@ -537,7 +543,7 @@
       .map(function (o) { return o.name; });
 
     var isMobile = !!(window.matchMedia && window.matchMedia("(hover: none)").matches);
-    var REPEATS = isMobile ? 1 : 3;
+    var REPEATS = (isMobile || IMAGES.length <= 1) ? 1 : 3;
     var viewport = document.getElementById("carouselViewport");
     var track = document.getElementById("carouselTrack");
     var prevBtn = document.getElementById("carouselPrev");
@@ -653,6 +659,20 @@
       buildItems();
       measure();
       track.classList.add("ready");
+
+      // a single image needs no repeats, no drift/scroll and no
+      // arrows - there's nowhere else to go, so it just sits there,
+      // centered and sized like any other slide.
+      if (IMAGES.length <= 1) {
+        if (prevBtn) prevBtn.style.display = "none";
+        if (nextBtn) nextBtn.style.display = "none";
+        window.addEventListener("resize", measure);
+        window.addEventListener("orientationchange", measure);
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(measure);
+        }
+        return;
+      }
 
       if (!isMobile) {
         var dir = 0;

@@ -167,6 +167,12 @@
     overflow: hidden;
     max-height: 9em;
     transition: max-height 0.35s ease;
+    scrollbar-width: none;
+  }
+  .project-desc-inner::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
   }
   .project-desc-track {
     display: none;
@@ -316,7 +322,8 @@
   <div class="project-desc" id="projectDesc">
     <div class="project-desc-scroll-wrap" id="projectDescScrollWrap">
       <div class="project-desc-inner" id="projectDescInner">
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+        <p class="project-desc-meta">print magazine and community project · co-founder and editor · 2017–2021</p>
+        <p><strong>Die Funzel</strong> was a hybrid of satirical lifestyle magazine and philosophy magazine. Its covers were adapted from historical issues of TEMPO and Karl Kraus's Die Fackel, placing us in a lineage of publications that treated journalism as a form of cultural critique with a sense of humour. Satire and philosophy turned out to be a good match: both depend on taking an idea more seriously than it takes itself, and a joke can make a theory stick where a footnote can't. Alongside publishing poetry, polemics and essays, we interviewed philosophy legends like Slavoj Žižek, and shot our own ad campaigns for the magazine. At a time of fast scrolling and quick consumption, we wanted to reactivate print as a fun medium. Around each issue, a community grew through participatory events, a talk series, academies, exhibitions and regular open meetings, turning the magazine into a place people could show up to, not just a thing to read.</p>
       </div>
       <div class="project-desc-track" id="projectDescTrack">
         <div class="project-desc-thumb" id="projectDescThumb"></div>
@@ -537,7 +544,7 @@
       .map(function (o) { return o.name; });
 
     var isMobile = !!(window.matchMedia && window.matchMedia("(hover: none)").matches);
-    var REPEATS = isMobile ? 1 : 3;
+    var REPEATS = (isMobile || IMAGES.length <= 1) ? 1 : 3;
     var viewport = document.getElementById("carouselViewport");
     var track = document.getElementById("carouselTrack");
     var prevBtn = document.getElementById("carouselPrev");
@@ -653,6 +660,20 @@
       buildItems();
       measure();
       track.classList.add("ready");
+
+      // a single image needs no repeats, no drift/scroll and no
+      // arrows - there's nowhere else to go, so it just sits there,
+      // centered and sized like any other slide.
+      if (IMAGES.length <= 1) {
+        if (prevBtn) prevBtn.style.display = "none";
+        if (nextBtn) nextBtn.style.display = "none";
+        window.addEventListener("resize", measure);
+        window.addEventListener("orientationchange", measure);
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(measure);
+        }
+        return;
+      }
 
       if (!isMobile) {
         var dir = 0;

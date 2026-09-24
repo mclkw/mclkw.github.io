@@ -22,6 +22,277 @@
     display: block;
     cursor: pointer;
   }
+
+  /* the slideshow is the whole page here - full screen, edge to edge
+     between the header and the bottom bar, with every picture in the
+     project's folder in it and no gap between them. the arrows float
+     on top of it rather than sitting outside to its left/right, so
+     they stay inside those same edges and can never get pushed
+     off-screen. */
+  .project-carousel {
+    position: fixed;
+    top: var(--header-h, 60px);
+    left: 0;
+    right: 0;
+    bottom: var(--bottom-h, 140px);
+    z-index: 20;
+  }
+  .carousel-viewport {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+  .carousel-track {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    will-change: transform;
+    /* stays invisible until every image has finished preloading and the
+       track has been built and measured with final sizes - avoids the
+       progressive-reflow flicker of images popping in and resizing one
+       at a time as they trickle in on a slow/cold connection. */
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+  .carousel-track.ready {
+    opacity: 1;
+  }
+  /* white circle behind the arrow glyph so it stays visible over any part
+     of the photo behind it - floats above the track, inset from the
+     slideshow's own edges (which are the window's edges) so it's
+     always on screen regardless of orientation. */
+  .carousel-arrow {
+    position: absolute;
+    z-index: 30;
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+    width: 3.4rem;
+    height: 3.4rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.88);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1.7rem;
+    line-height: 1;
+    color: #000000;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+  .carousel-arrow:hover {
+    background: #ffffff;
+    transform: translateY(-50%) scale(1.08);
+  }
+  #carouselPrev { left: 1.2vw; right: auto; }
+  #carouselNext { right: 1.2vw; left: auto; }
+  /* every item is pinned to the same cross-axis size (the live
+     viewport's own height in landscape, width in portrait) in script,
+     so every image renders at the same height (or width, in portrait)
+     no matter whether the source photo is itself landscape or
+     portrait - the other dimension is left free to follow that image's
+     own aspect ratio, so roughly three fit at once edge to edge but the
+     exact count varies a little with each photo's shape. */
+  .carousel-item {
+    flex: 0 0 auto;
+    overflow: hidden;
+  }
+  /* each picture keeps its own transparency - a png with an alpha
+     cutout shows the plain page behind it through those parts,
+     rather than being masked behind a solid card. */
+  .carousel-item img {
+    display: block;
+  }
+
+  /* the bottom section - work description (left) and the baked work
+     title (right), on a plain white bar under the slideshow (not an
+     overlay on top of it - the slideshow stops right above this bar). */
+  .project-bottom {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 800;
+    background: #ffffff;
+    border-top: 2px solid #000000;
+    box-sizing: border-box;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 3vmin;
+    padding: 2.5vmin 5vmin;
+  }
+  .project-desc {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: calc(50% - 1.5vmin);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+    line-height: 1.5;
+    color: #000000;
+  }
+  .project-desc p {
+    margin: 0 0 0.9em;
+  }
+  .project-desc p:last-child {
+    margin-bottom: 0;
+  }
+  /* an optional label naming the medium, sitting above the description
+     text in a heavier weight than the body copy but the same size. */
+  .project-desc-medium {
+    margin: 0 0 0.6em;
+    font-family: 'Arial Black', Arial, sans-serif;
+    font-weight: 900;
+    font-size: inherit;
+  }
+  /* folded to roughly a paragraph's height by default so it doesn't eat
+     into the slideshow above it - expanding grows the bar upward, since
+     it's pinned to the bottom edge, but only up to half the viewport, so
+     the slideshow always keeps at least half the screen. a "more" toggle
+     only appears at all if the real content actually overflows the
+     folded height; the custom scrollbar (same look as the other pages'
+     lists) only appears if the content still overflows even at that
+     half-page expanded cap. */
+  .project-desc-scroll-wrap {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .project-desc-inner {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    max-height: 9em;
+    transition: max-height 0.35s ease;
+    scrollbar-width: none;
+  }
+  .project-desc-inner::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+  .project-desc-track {
+    display: none;
+    position: relative;
+    flex: 0 0 8px;
+    width: 8px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.12);
+    cursor: pointer;
+  }
+  .project-desc-thumb {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+    background: #000000;
+  }
+  .project-desc-toggle {
+    display: none;
+    margin: 0.5em 0 0;
+    padding: 0;
+    border: none;
+    background: none;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: inherit;
+    color: #000000;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .project-title {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: calc(50% - 1.5vmin);
+    text-align: right;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 400;
+    text-transform: lowercase;
+    color: #000000;
+    font-size: clamp(1.6rem, 4.2vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  @media (orientation: portrait) {
+    /* description stays left-aligned, above the title, which stays
+       right-aligned - same alignment as landscape, just stacked. */
+    .project-bottom {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.8em;
+    }
+    .project-desc {
+      max-width: none;
+      text-align: left;
+    }
+    .project-title {
+      max-width: none;
+      text-align: right;
+    }
+    /* the slideshow turns vertical - cards stack going up/down instead of
+       side to side (script switches the track to a column and sizes
+       cards off the viewport's live height instead of width). the
+       arrows move to the top and bottom edges and rotate to point
+       up/down, staying inset from those same edges - same full-bleed
+       box as landscape, so they're always inside it and on screen. */
+    .carousel-arrow {
+      top: auto;
+      bottom: auto;
+      left: 50%;
+      right: auto;
+      width: 2.3rem;
+      height: 2.3rem;
+      font-size: 1.15rem;
+      transform: translateX(-50%) rotate(90deg);
+    }
+    .carousel-arrow:hover {
+      transform: translateX(-50%) rotate(90deg) scale(1.08);
+    }
+    #carouselPrev { top: 1.2vh; bottom: auto; left: 50%; right: auto; }
+    #carouselNext { bottom: 1.2vh; top: auto; left: 50%; right: auto; }
+  }
+
+  /* touch devices: no hover to drive the arrows, so the viewport itself
+     becomes a plain, natively swipeable filmstrip instead - the arrows
+     stay visible as pure affordances (not clickable) showing which way
+     there's still more to scroll, and hide themselves at whichever end
+     has nothing further that way (script-driven; starts assuming the
+     first image, so the prev arrow defaults to hidden here). momentum
+     scrolling with a gentle snap so it settles on one image at a time.
+     axis follows the same landscape/portrait split as above (script
+     already lays the track out that way). */
+  @media (hover: none) {
+    .carousel-arrow {
+      pointer-events: none;
+      cursor: default;
+    }
+    #carouselPrev {
+      display: none;
+    }
+    .carousel-viewport {
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x proximity;
+      scrollbar-width: none;
+    }
+    .carousel-viewport::-webkit-scrollbar {
+      display: none;
+    }
+    .carousel-item {
+      scroll-snap-align: center;
+    }
+  }
+  @media (hover: none) and (orientation: portrait) {
+    .carousel-viewport {
+      scroll-snap-type: y proximity;
+    }
+  }
 </style>
 </head>
 <body data-page="" data-corner="top-left">
@@ -39,10 +310,478 @@
   </nav>
 </header>
 
-<div class="corner-title">aesthetics in<br>scientific understanding</div>
+<div class="project-carousel" id="projectCarousel">
+  <button type="button" class="carousel-arrow" id="carouselPrev" aria-label="previous image">‹</button>
+  <div class="carousel-viewport" id="carouselViewport">
+    <div class="carousel-track" id="carouselTrack"></div>
+  </div>
+  <button type="button" class="carousel-arrow" id="carouselNext" aria-label="next image">›</button>
+</div>
+
+<div class="project-bottom" id="projectBottom">
+  <div class="project-desc" id="projectDesc">
+    <div class="project-desc-scroll-wrap" id="projectDescScrollWrap">
+      <div class="project-desc-inner" id="projectDescInner">
+        <p class="project-desc-meta">BA thesis in philosophy · 2021</p>
+        <p>Why does it matter whether a theory is elegant or a model is beautiful? With the rise of cognitive science, new media studies and a broader awareness of values in science, aesthetic values have returned to the philosophy of science, most recently in Ivanova and French's The Aesthetics of Science (2020). Much of this debate now focuses on how aesthetic factors can get in the way of understanding. My aim is to investigate how they support and shape understanding instead. This thesis connects research on aesthetic cognition with recent theories of scientific understanding, a link the literature points to but has not yet worked out in detail. It's an early version of a question that runs through my later work: how the multisensory representation of concepts and the limitation of its form steer what we come to believe.</p>
+        <p>Contact me for full abstract or PDF.</p>
+      </div>
+      <div class="project-desc-track" id="projectDescTrack">
+        <div class="project-desc-thumb" id="projectDescThumb"></div>
+      </div>
+    </div>
+    <button type="button" class="project-desc-toggle" id="projectDescToggle" aria-expanded="false">more</button>
+  </div>
+  <div class="project-title">aesthetics in scientific understanding</div>
+</div>
 
 <script src="/bounce.js"></script>
 <script src="/menu.js"></script>
 <script src="/corner-logo.js"></script>
+<script>
+  (function () {
+    // prevents a long title's last line from ending in a single lonely
+    // word (an orphan) by gluing the final two words together with a
+    // non-breaking space - independent of exactly where the browser
+    // ends up wrapping the rest of it. text-wrap: balance (in the CSS)
+    // handles the overall line balance.
+    var titleEl = document.querySelector(".project-title");
+    if (titleEl) {
+      var words = titleEl.textContent.trim().split(/\s+/);
+      if (words.length > 1) {
+        var last = words.pop();
+        titleEl.textContent = words.join(" ") + " " + last;
+      }
+    }
+  })();
+
+  (function () {
+    // keep --header-h in sync (same pattern used site-wide).
+    var headerEl = document.querySelector(".site-header");
+    function updateHeaderHeightVar() {
+      if (!headerEl) return;
+      var rect = headerEl.getBoundingClientRect();
+      document.documentElement.style.setProperty("--header-h", rect.height + "px");
+    }
+    updateHeaderHeightVar();
+    window.addEventListener("resize", updateHeaderHeightVar);
+    window.addEventListener("orientationchange", updateHeaderHeightVar);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(updateHeaderHeightVar);
+    }
+  })();
+
+  (function () {
+    // the slideshow fills down to the bottom bar's own live height -
+    // recomputed whenever that can change (bottom bar wrapping in
+    // portrait, window resize, the description folding open/closed...).
+    // a ResizeObserver catches all of those uniformly, including the
+    // fold toggle, instead of wiring each one up by hand.
+    var bottomEl = document.getElementById("projectBottom");
+    if (!bottomEl) return;
+
+    function layout() {
+      var bottomRect = bottomEl.getBoundingClientRect();
+      document.documentElement.style.setProperty("--bottom-h", bottomRect.height + "px");
+    }
+    layout();
+    window.addEventListener("resize", layout);
+    window.addEventListener("orientationchange", layout);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(layout);
+    }
+    if (window.ResizeObserver) {
+      new ResizeObserver(layout).observe(bottomEl);
+    }
+  })();
+
+  (function () {
+    // folded to roughly a paragraph's height by default so the
+    // description doesn't eat into the slideshow above it - only grows
+    // a "more" toggle if the real content actually overflows that
+    // height. the bar is pinned to the bottom edge, so expanding it
+    // grows upward, but only up to half the viewport - past that the
+    // text area itself scrolls (with the same custom scrollbar used on
+    // the other pages' lists) instead of pushing the slideshow any
+    // further. the ResizeObserver above keeps the slideshow's height in
+    // sync as any of this happens.
+    var inner = document.getElementById("projectDescInner");
+    var toggle = document.getElementById("projectDescToggle");
+    var track = document.getElementById("projectDescTrack");
+    var thumb = document.getElementById("projectDescThumb");
+    if (!inner || !toggle) return;
+
+    var FOLDED_EM = 9; // roughly a full paragraph at this text's line-height
+    var EXPANDED_MAX_VH = 0.5; // expanding never covers more than half the viewport
+    var expanded = false;
+    var foldedPx = 0;
+    var fullPx = 0;
+    var expandedPx = 0;
+
+    function updateScrollbar() {
+      if (!track || !thumb) return;
+      var scrollable = inner.scrollHeight - inner.clientHeight;
+      if (!expanded || scrollable <= 1) {
+        track.style.display = "none";
+        inner.style.overflowY = "hidden";
+        return;
+      }
+      inner.style.overflowY = "auto";
+      track.style.display = "block";
+      var trackH = track.clientHeight;
+      var ratioVisible = Math.min(1, inner.clientHeight / inner.scrollHeight);
+      var thumbH = Math.min(trackH, Math.max(20, trackH * ratioVisible));
+      thumb.style.height = thumbH + "px";
+      var maxThumbTop = trackH - thumbH;
+      var scrollRatio = scrollable > 0 ? inner.scrollTop / scrollable : 0;
+      thumb.style.top = (scrollRatio * maxThumbTop) + "px";
+    }
+
+    function measure() {
+      var fontSize = parseFloat(getComputedStyle(inner).fontSize) || 16;
+      foldedPx = Math.round(FOLDED_EM * fontSize);
+      expandedPx = Math.round(window.innerHeight * EXPANDED_MAX_VH);
+      inner.style.maxHeight = "none";
+      inner.style.overflowY = "hidden";
+      fullPx = inner.scrollHeight;
+      if (fullPx > foldedPx + 4) {
+        toggle.style.display = "block";
+        inner.style.maxHeight = (expanded ? Math.min(fullPx, expandedPx) : foldedPx) + "px";
+      } else {
+        toggle.style.display = "none";
+        expanded = false;
+        inner.style.maxHeight = "none";
+      }
+      updateScrollbar();
+    }
+
+    toggle.addEventListener("click", function () {
+      expanded = !expanded;
+      inner.style.maxHeight = (expanded ? Math.min(fullPx, expandedPx) : foldedPx) + "px";
+      toggle.textContent = expanded ? "less" : "more";
+      toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+      // give the max-height transition time to settle before reading the
+      // scrolled/scrollable extents off of it.
+      window.setTimeout(updateScrollbar, 370);
+    });
+
+    if (track && thumb) {
+      inner.addEventListener("scroll", updateScrollbar);
+
+      var dragging = false, startY = 0, startScroll = 0;
+      thumb.addEventListener("mousedown", function (e) {
+        dragging = true;
+        startY = e.clientY;
+        startScroll = inner.scrollTop;
+        e.preventDefault();
+      });
+      window.addEventListener("mousemove", function (e) {
+        if (!dragging) return;
+        var trackH = track.clientHeight;
+        var thumbH = thumb.offsetHeight;
+        var maxThumbTop = trackH - thumbH;
+        var scrollable = inner.scrollHeight - inner.clientHeight;
+        if (maxThumbTop <= 0 || scrollable <= 0) return;
+        var deltaScroll = ((e.clientY - startY) / maxThumbTop) * scrollable;
+        inner.scrollTop = startScroll + deltaScroll;
+      });
+      window.addEventListener("mouseup", function () { dragging = false; });
+
+      track.addEventListener("mousedown", function (e) {
+        if (e.target === thumb) return;
+        var rect = track.getBoundingClientRect();
+        var clickY = e.clientY - rect.top;
+        var thumbH = thumb.offsetHeight;
+        var maxThumbTop = track.clientHeight - thumbH;
+        var scrollable = inner.scrollHeight - inner.clientHeight;
+        if (maxThumbTop <= 0 || scrollable <= 0) return;
+        var targetTop = Math.min(Math.max(0, clickY - thumbH / 2), maxThumbTop);
+        inner.scrollTop = (targetTop / maxThumbTop) * scrollable;
+      });
+    }
+
+    measure();
+    window.addEventListener("resize", measure);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(measure);
+    }
+  })();
+
+  (function () {
+    // a continuously-flowing slideshow on pointer/mouse devices - the
+    // track holds the image set repeated several times back to back, and
+    // hovering an arrow smoothly slides it in that direction for as long
+    // as the pointer stays there, wrapping seamlessly between repeats so
+    // it can flow indefinitely. clicking an arrow additionally gives it
+    // a direct function: a quick, smoothly-eased slide straight to the
+    // next/previous image. on touch devices (no hover to drive it) the
+    // viewport becomes a plain native-scroll filmstrip instead - see
+    // isMobile below. every image is shown at the same cross-axis size
+    // (full height in landscape, full width in portrait) regardless of
+    // whether the original photo is itself landscape or portrait - only
+    // the other dimension varies, scaled to match each image's own
+    // aspect ratio. every picture in the project's folder is included,
+    // edge to edge with no gap between them.
+    var IMAGE_DIR = "/images/aesthetics-in-scientific-understanding/";
+    var IMAGES_RAW = ["BA.jpg"];
+
+    // images whose name (ignoring its extension) ends in a run of digits
+    // sort first, ordered by that number - so "xxx_01.png" comes before
+    // "xyz.02.jpg" regardless of extension - with un-numbered images kept
+    // in their original (array) order, after all the numbered ones.
+    function trailingNumber(name) {
+      var base = name.replace(/\.[^.]+$/, "");
+      var m = base.match(/(\d+)$/);
+      return m ? parseInt(m[1], 10) : null;
+    }
+    var IMAGES = IMAGES_RAW
+      .map(function (name, i) { return { name: name, num: trailingNumber(name), i: i }; })
+      .sort(function (a, b) {
+        if ((a.num !== null) !== (b.num !== null)) return a.num !== null ? -1 : 1;
+        if (a.num !== null && a.num !== b.num) return a.num - b.num;
+        return a.i - b.i;
+      })
+      .map(function (o) { return o.name; });
+
+    var isMobile = !!(window.matchMedia && window.matchMedia("(hover: none)").matches);
+    var REPEATS = (isMobile || IMAGES.length <= 1) ? 1 : 3;
+    var viewport = document.getElementById("carouselViewport");
+    var track = document.getElementById("carouselTrack");
+    var prevBtn = document.getElementById("carouselPrev");
+    var nextBtn = document.getElementById("carouselNext");
+    var carouselEl = document.getElementById("projectCarousel");
+    if (!viewport || !track) return;
+    if (IMAGES.length === 0) {
+      if (carouselEl) carouselEl.style.display = "none";
+      return;
+    }
+
+    function isPortrait() {
+      return window.innerHeight > window.innerWidth;
+    }
+
+    var remeasureQueued = false;
+    function queueRemeasure() {
+      if (remeasureQueued) return;
+      remeasureQueued = true;
+      requestAnimationFrame(function () {
+        remeasureQueued = false;
+        measure();
+      });
+    }
+
+    var items = [];
+    var setSize = 0; // px length (width or height) of one full lap through IMAGES, gaps included
+    var pos = 0; // current scroll offset, kept hovering around one setSize
+
+    // every item is pinned to the same cross-axis size (the live
+    // viewport's own height in landscape, width in portrait) and left to
+    // size itself along the other axis from its own image's aspect ratio
+    // - so every image ends up the same height (landscape) no matter its
+    // source orientation, instead of being squeezed into a uniform box.
+    function measure() {
+      var portrait = isPortrait();
+      var vpRect = viewport.getBoundingClientRect();
+      var crossAxis = portrait ? vpRect.width : vpRect.height;
+      var gap = 0;
+      track.style.flexDirection = portrait ? "column" : "row";
+      track.style.gap = gap + "px";
+      items.forEach(function (item) {
+        var img = item.firstChild;
+        if (portrait) {
+          item.style.width = crossAxis + "px";
+          item.style.height = "auto";
+          img.style.width = "100%";
+          img.style.height = "auto";
+        } else {
+          item.style.height = crossAxis + "px";
+          item.style.width = "auto";
+          img.style.height = "100%";
+          img.style.width = "auto";
+        }
+      });
+
+      // on mobile the browser's own scroll position handles placement -
+      // no lap-length/transform bookkeeping needed.
+      if (isMobile) return;
+
+      var setLength = 0;
+      for (var i = 0; i < IMAGES.length; i++) {
+        var rect = items[i].getBoundingClientRect();
+        setLength += (portrait ? rect.height : rect.width) + gap;
+      }
+      var prevSetSize = setSize;
+      setSize = setLength;
+      // keep the same visual spot when the lap length changes (an image
+      // finishing loading, a resize) instead of snapping the scroll.
+      pos = prevSetSize > 0 ? pos * (setSize / prevSetSize) : setSize;
+      apply();
+    }
+
+    function apply() {
+      track.style.transform = isPortrait()
+        ? "translateY(" + (-pos) + "px)"
+        : "translateX(" + (-pos) + "px)";
+    }
+
+    function buildItems() {
+      for (var r = 0; r < REPEATS; r++) {
+        IMAGES.forEach(function (name) {
+          var item = document.createElement("div");
+          item.className = "carousel-item";
+          var img = document.createElement("img");
+          img.src = IMAGE_DIR + name;
+          img.alt = name.replace(/\.[^.]+$/, "");
+          img.addEventListener("load", queueRemeasure);
+          item.appendChild(img);
+          track.appendChild(item);
+          items.push(item);
+        });
+      }
+    }
+
+    function preloadImage(src) {
+      return new Promise(function (resolve) {
+        var probe = new Image();
+        probe.onload = resolve;
+        probe.onerror = resolve; // don't let one bad file block the rest
+        probe.src = src;
+      });
+    }
+
+    // every image is fully decoded before anything is added to the page -
+    // building the strip incrementally instead let each image's now-known
+    // aspect ratio reflow everything after it as it arrived over the
+    // network, which on a slow/cold connection showed up as a chaotic
+    // flicker of images resizing and jumping into place one at a time. a
+    // cached reload has no such delay, which is why the same page looked
+    // fine there.
+    Promise.all(IMAGES.map(function (name) { return preloadImage(IMAGE_DIR + name); })).then(function () {
+      buildItems();
+      measure();
+      track.classList.add("ready");
+
+      // a single image needs no repeats, no drift/scroll and no
+      // arrows - there's nowhere else to go, so it just sits there,
+      // centered and sized like any other slide.
+      if (IMAGES.length <= 1) {
+        if (prevBtn) prevBtn.style.display = "none";
+        if (nextBtn) nextBtn.style.display = "none";
+        window.addEventListener("resize", measure);
+        window.addEventListener("orientationchange", measure);
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(measure);
+        }
+        return;
+      }
+
+      if (!isMobile) {
+        var dir = 0;
+        var lastFrameTime = null;
+        var SPEED = 0.4; // average lanes (item+gap widths) per second - gentle, liquid pace
+        var stepping = false; // true while a click-triggered step animation plays
+
+        var tick = function (now) {
+          if (lastFrameTime === null) lastFrameTime = now;
+          var dt = now - lastFrameTime;
+          lastFrameTime = now;
+          if (!stepping && dir !== 0 && setSize > 0) {
+            var avgLane = setSize / IMAGES.length;
+            pos += dir * SPEED * avgLane * (dt / 1000);
+            if (pos < setSize * 0.5) pos += setSize;
+            else if (pos > setSize * 1.5) pos -= setSize;
+            apply();
+          }
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+
+        var setDir = function (next) {
+          dir = next;
+          lastFrameTime = null;
+        };
+
+        // clicking an arrow gives it a direct function beyond hovering:
+        // a quick, smoothly-eased slide straight to the next/previous
+        // image, using a real CSS transition rather than the per-frame
+        // drift math above (paused via `stepping` for the duration so
+        // the two don't fight over the same transform).
+        var STEP_MS = 550;
+        function stepTo(direction) {
+          if (setSize <= 0 || stepping) return;
+          stepping = true;
+          var avgLane = setSize / IMAGES.length;
+          pos += direction * avgLane;
+          track.style.transition = "transform " + STEP_MS + "ms cubic-bezier(.22,1,.36,1)";
+          apply();
+          window.setTimeout(function () {
+            track.style.transition = "";
+            if (pos < setSize * 0.5) pos += setSize;
+            else if (pos > setSize * 1.5) pos -= setSize;
+            apply();
+            stepping = false;
+          }, STEP_MS);
+        }
+
+        if (prevBtn) {
+          prevBtn.addEventListener("mouseenter", function () { setDir(-1); });
+          prevBtn.addEventListener("mouseleave", function () { setDir(0); });
+          prevBtn.addEventListener("click", function () { stepTo(-1); });
+        }
+        if (nextBtn) {
+          nextBtn.addEventListener("mouseenter", function () { setDir(1); });
+          nextBtn.addEventListener("mouseleave", function () { setDir(0); });
+          nextBtn.addEventListener("click", function () { stepTo(1); });
+        }
+
+        window.addEventListener("resize", measure);
+        window.addEventListener("orientationchange", measure);
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(measure);
+        }
+      } else {
+        // mobile: a plain native-scroll filmstrip - swipe the viewport
+        // itself to move through the images. the arrows here are pure
+        // affordances (pointer-events: none in CSS), not real controls -
+        // each hides itself once there's nothing further that way, so
+        // people can see at a glance that (and which way) it scrolls.
+        // always starts at the first image regardless of any browser
+        // scroll-snap quirk on load.
+        viewport.scrollLeft = 0;
+        viewport.scrollTop = 0;
+
+        function updateEdgeArrows() {
+          var portrait = isPortrait();
+          var scrollPos = portrait ? viewport.scrollTop : viewport.scrollLeft;
+          var extent = portrait
+            ? viewport.scrollHeight - viewport.clientHeight
+            : viewport.scrollWidth - viewport.clientWidth;
+          var EDGE = 2;
+          if (!prevBtn || !nextBtn) return;
+          if (extent <= EDGE) {
+            prevBtn.style.display = "none";
+            nextBtn.style.display = "none";
+            return;
+          }
+          prevBtn.style.display = scrollPos <= EDGE ? "none" : "flex";
+          nextBtn.style.display = scrollPos >= extent - EDGE ? "none" : "flex";
+        }
+
+        function mobileSync() {
+          measure();
+          updateEdgeArrows();
+        }
+
+        updateEdgeArrows();
+        viewport.addEventListener("scroll", updateEdgeArrows, { passive: true });
+        window.addEventListener("resize", mobileSync);
+        window.addEventListener("orientationchange", mobileSync);
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(mobileSync);
+        }
+      }
+    });
+  })();
+</script>
 </body>
 </html>
