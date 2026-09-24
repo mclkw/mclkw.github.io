@@ -592,7 +592,18 @@
       track.style.gap = gap + "px";
       items.forEach(function (item) {
         var img = item.firstChild;
-        if (portrait) {
+        if (IMAGES.length <= 1) {
+          // a single image has nowhere to scroll to, so instead of just
+          // matching the cross-axis (like the multi-image filmstrip,
+          // which would leave empty page around a differently-shaped
+          // photo) it fills the whole slideshow box in both dimensions,
+          // cropping via object-fit instead.
+          item.style.width = "100%";
+          item.style.height = "100%";
+          img.style.width = "100%";
+          img.style.height = "100%";
+          img.style.objectFit = "cover";
+        } else if (portrait) {
           item.style.width = crossAxis + "px";
           item.style.height = "auto";
           img.style.width = "100%";
