@@ -806,12 +806,28 @@
 
       // the drawn position eases toward the true (already-resolved, never
       // overlapping) position rather than snapping straight to it - this
-      // is the actual source of the heavy/flowy/slow feel.
+      // is the actual source of the heavy/flowy/slow feel. but the true
+      // position being safely in-bounds (the hard limit pass above)
+      // doesn't mean the *drawn* one is too - after a sudden change (the
+      // window resizing smaller, a scale change) it can lag outside the
+      // walls for a second or more while it catches up. so it gets the
+      // same hard clamp applied to it directly, every frame, right after
+      // easing - this is what actually keeps a piece from ever being
+      // drawn hanging outside the window, not just resolved there.
       for (i = 0; i < n; i++) {
         a = instances[i];
         if (!a.active) continue;
         a.renderX += (a.x - a.renderX) * RENDER_EASE;
         a.renderY += (a.y - a.renderY) * RENDER_EASE;
+
+        var rBottom = facingExtent(a, Math.PI / 2);
+        if (a.renderY + rBottom > floorY) a.renderY = floorY - rBottom;
+        var rTop = facingExtent(a, -Math.PI / 2);
+        if (a.renderY - rTop < topWallY) a.renderY = topWallY + rTop;
+        var rLeft = facingExtent(a, Math.PI);
+        if (a.renderX - rLeft < leftWall) a.renderX = leftWall + rLeft;
+        var rRight = facingExtent(a, 0);
+        if (a.renderX + rRight > rightWall) a.renderX = rightWall - rRight;
       }
 
       for (var k = 0; k < n; k++) if (instances[k].active) render(instances[k]);

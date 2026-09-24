@@ -42,20 +42,19 @@
     background-repeat: no-repeat;
     z-index: 5;
   }
-  /* bound to the upper border, mirrored to the left side, slightly
-     smaller than before so the gap before the education section (bound
-     to the lower border) actually reads as a gap - capped height with
-     its own internal scroll (same treatment as the work page's approach
-     box) so it can never grow down far enough to collide with education
-     coming up from the bottom, in a short/squeezed landscape window. a
-     thin custom scrollbar sits to its left when it needs to scroll. */
+  /* bound to the upper border, mirrored to the left side - reaches
+     further down than education's own box (bound to the lower border)
+     so more of the text shows before its internal scroll kicks in,
+     while still capped short of colliding with education coming up
+     from the bottom in a short/squeezed landscape window. a thin
+     custom scrollbar sits to its left when it needs to scroll. */
   .about-blurb-wrap {
     position: fixed;
     top: calc(var(--header-h, 60px) + 2.5vmin);
     left: 5vmin;
     width: 44vw;
     min-width: 220px;
-    max-height: 43vh;
+    max-height: 54vh;
     display: flex;
     flex-direction: row;
     gap: 8px;
@@ -260,11 +259,11 @@
         <div class="about-blurb-thumb" id="aboutBlurbThumb"></div>
       </div>
       <div class="about-blurb" id="aboutBlurb">
-        <p>Lea Kiri Wyrger is a cross-disciplinary artist and researcher based between Vienna and Berlin.</p>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-        <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-        <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.</p>
-        <p>Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur. Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur.</p>
+        <p>I am a visual artist and cross-disciplinary researcher with a background in philosophy.</p>
+        <p>My work starts from the observation that emerging digital technologies define new rules and constraints for our agency, and in doing so, offer us new social, political and epistemic games to play. In my research, I am interested in the weird and counterintuitive beliefs and actions that seem to become rational once we start playing them.</p>
+        <p>In my artistic practice, I focus on the material and visceral side of these games, confronting how it feels to play. My work recreates the affective sensations of digital interaction, such as the coexistence of surveillance and recreation, hope as a yearning form of probabilistic speculation, or connectedness in physical absence. A recurring focus is what I call technologies of artificial entertainment: slot games, chatbots, animatronics and fun-fair attractions - machines designed to make us obsessed with an abstract and very narrow kind of ecstasy. Alongside these, my observations find form in costume and performance, participatory installations, sculpture and printed matter.</p>
+        <p>As an artist, I have worked with, among others, SpielArt Theaterfestival, Villa Stuck, Potsdamer Tanztage, Live from Earth Klub, Zentrale Zentrale, White Noise Seoul, Symposium Urbanum Nürnberg and Donaufestival. As a researcher, I have taught or worked at the Munich Center for Mathematical Philosophy, the Munich Center for Ethics, Freie Universität Berlin, the Alfred Toepfer Stiftung's Europakolleg Cultural Sustainability, Forum für Freiraum and the German Academic Scholarship Foundation. I co-founded and edited the satirical philosophy magazine Die Funzel, and have written for Arts of the Working Class, springerin and Süddeutsche Zeitung.</p>
+        <p>I am based between Vienna and Berlin.</p>
       </div>
     </div>
 
