@@ -141,19 +141,6 @@
   .approach-fold {
     display: none;
   }
-  /* plain text, same size as the medium/date links next to it, just not a
-     link - no hover state, no cursor. */
-  .corner-menu .sort-label {
-    display: block;
-    font-family: Arial, Helvetica, sans-serif;
-    font-weight: 400;
-    text-transform: lowercase;
-    color: #000000;
-    text-shadow: none;
-    font-size: clamp(2rem, 5.5vw, 3.75rem);
-    line-height: 1.15;
-    letter-spacing: -0.01em;
-  }
 
   /* portrait: the description sits folded to a single line above the
      title list by default (no internal scrolling) with a thin black line
@@ -223,14 +210,14 @@
       transform: translate(-50%, 0) rotate(180deg);
     }
     .worklist-wrap {
-      top: calc(var(--header-h, 60px) + var(--approach-h, calc(1.9em + 28px)) + var(--sort-h, 2.6em) + 7vmin);
+      top: calc(var(--header-h, 60px) + var(--approach-h, calc(1.9em + 28px)) + var(--filter-h, 2.6em) + 7vmin);
       left: 2.5vmin;
       width: calc(100vw - 5vmin);
-      height: calc(100vh - var(--header-h, 60px) - var(--approach-h, calc(1.9em + 28px)) - var(--sort-h, 2.6em) - 10vmin);
+      height: calc(100vh - var(--header-h, 60px) - var(--approach-h, calc(1.9em + 28px)) - var(--filter-h, 2.6em) - 10vmin);
     }
-    /* the sort control moves out of the fixed bottom-right corner here and
-       sits centered in the flow, between the description and the title
-       list, at a smaller size than its landscape/desktop scale. */
+    /* the filter control moves out of the fixed bottom-right corner here
+       and sits centered in the flow, between the description and the
+       title list, at a smaller size than its landscape/desktop scale. */
     .corner-menu {
       position: fixed;
       left: 0;
@@ -242,7 +229,6 @@
       justify-content: center;
       gap: 0.6em;
     }
-    .corner-menu .sort-label,
     .corner-menu a {
       font-size: clamp(0.8rem, 3.2vw, 1.05rem);
     }
@@ -281,10 +267,11 @@
   </button>
 </div>
 
-<nav class="menu corner-menu" id="sortMenu">
-  <span class="sort-label">sort by</span>
-  <a href="#" data-sort="medium">medium</a>
-  <a href="#" data-sort="date" class="active">date</a>
+<nav class="menu corner-menu" id="filterMenu">
+  <a href="#" data-filter="all" class="active">all</a>
+  <a href="#" data-filter="art">visual</a>
+  <a href="#" data-filter="other">applied</a>
+  <a href="#" data-filter="research">research</a>
 </nav>
 
 <script src="/bounce.js"></script>
@@ -309,15 +296,16 @@
   })();
 
   (function () {
-    // portrait only: the sort control (sort by / medium / date) moves into
-    // the normal flow there, between the description and the title list -
-    // --sort-h tracks its live height so the title list always starts
+    // portrait only: the filter control (all / visual / applied /
+    // research) moves into the normal flow there, between the description
+    // and the title list - --filter-h tracks its live height so the title
+    // list always starts
     // right after it. harmless in landscape, where nothing reads this var.
-    var sortMenuEl = document.getElementById("sortMenu");
+    var filterMenuEl = document.getElementById("filterMenu");
     function updateSortHeightVar() {
-      if (!sortMenuEl) return;
-      var rect = sortMenuEl.getBoundingClientRect();
-      document.documentElement.style.setProperty("--sort-h", rect.height + "px");
+      if (!filterMenuEl) return;
+      var rect = filterMenuEl.getBoundingClientRect();
+      document.documentElement.style.setProperty("--filter-h", rect.height + "px");
     }
     updateSortHeightVar();
     window.addEventListener("resize", updateSortHeightVar);
@@ -357,13 +345,7 @@
   (function () {
     // the work list, its labels/colors, and its date (month.year, e.g.
     // 2025.02 for Feb 2025 - kept fine-grained enough to sort by, but
-    // never printed anywhere; the "date" sort is the only use for it).
-    // this order (not alphabetical) is chosen so every pair of labels that
-    // actually co-occurs on some work sits adjacent - costume/performance,
-    // research project/publication, publication/sculpture, sculpture/game -
-    // so a dual-labeled work's averaged medium-sort position always lands
-    // exactly between its two real categories, with nothing else between.
-    var LABELS = ["costume", "performance", "research project", "publication", "sculpture", "game", "stage", "prototype", "public affection"];
+    // never printed anywhere - the list is always sorted newest-first).
     var LABEL_COLORS = {
       "sculpture": "#1b5e20",
       "costume": "#ff2ec4",
@@ -378,27 +360,30 @@
     // labels bright enough that white text loses contrast - blue and
     // purple stay pastel as-is, so they're not in here.
     var DARK_TEXT_LABELS = { "prototype": true, "stage": true, "performance": true, "game": true };
+    // category matches the front page's collage exactly (art = visual,
+    // other = applied, research = research) - same per-project assignment,
+    // just reused here for the filter menu below instead of recomputed.
     var WORKS = [
-      { title: "commoning grief", href: "/commoning-grief/", date: 2025.02, labels: ["research project", "publication"] },
-      { title: "steel on canvas", href: "/steel-on-canvas/", date: 2024.10, labels: ["sculpture"] },
-      { title: "inflatable carry-on", href: "/inflatable-carry-on/", date: 2026.06, labels: ["prototype"] },
-      { title: "pigeon oracle", href: "/pigeon-oracle/", date: 2024.12, labels: ["public affection"] },
-      { title: "posthuman fragments", href: "/posthuman-fragments/", date: 2022.03, labels: ["costume"] },
-      { title: "unknown return to player", href: "/unknown-return-to-player/", date: 2026.07, labels: ["game", "sculpture"] },
-      { title: "masks for istanbul ghetto club", href: "/masks-for-istanbul-ghetto-club/", date: 2025.10, labels: ["costume"] },
-      { title: "one day all dreams", href: "/one-day-all-dreams/", date: 2021.11, labels: ["performance", "costume"] },
-      { title: "amateur home making", href: "/amateur-home-making/", date: 2026.06, labels: ["research project", "publication"] },
-      { title: "die funzel. halbjahresschrift für prätentiöse studien.", href: "/die-funzel/", date: 2020.01, labels: ["publication"] },
-      { title: "epistemic gamification", href: "/epistemic-gamification/", date: 2026.02, labels: ["research project"] },
-      { title: "aesthetics in scientific understanding", href: "/aesthetics-in-scientific-understanding/", date: 2021.01, labels: ["research project"] },
-      { title: "business cards // 명함", href: "/business-cards/", date: 2023.06, labels: ["sculpture", "publication"] },
-      { title: "2 ½ stars", href: "/2-half-stars/", date: 2023.06, labels: ["sculpture", "publication"] },
-      { title: "gartenbühne bau mich auf / live from earth", href: "/live-from-earth/", date: 2021.07, labels: ["stage"] },
-      { title: "an/aesthetics: notes on notes on camp", href: "/an-aesthetics/", date: 2022.01, labels: ["research project"] },
-      { title: "i think i found my practice", href: "/i-think-i-found-my-practice/", date: 2026.01, labels: ["publication"] }
+      { title: "commoning grief", href: "/commoning-grief/", date: 2025.02, labels: ["research project", "publication"], category: "research" },
+      { title: "steel on canvas", href: "/steel-on-canvas/", date: 2024.10, labels: ["sculpture"], category: "art" },
+      { title: "inflatable carry-on", href: "/inflatable-carry-on/", date: 2026.06, labels: ["prototype"], category: "art" },
+      { title: "pigeon oracle", href: "/pigeon-oracle/", date: 2024.12, labels: ["public affection"], category: "other" },
+      { title: "posthuman fragments", href: "/posthuman-fragments/", date: 2022.03, labels: ["costume"], category: "other" },
+      { title: "unknown return to player", href: "/unknown-return-to-player/", date: 2026.07, labels: ["game", "sculpture"], category: "art" },
+      { title: "masks for istanbul ghetto club", href: "/masks-for-istanbul-ghetto-club/", date: 2025.10, labels: ["costume"], category: "other" },
+      { title: "one day all dreams", href: "/one-day-all-dreams/", date: 2021.11, labels: ["performance", "costume"], category: "art" },
+      { title: "amateur home making", href: "/amateur-home-making/", date: 2026.06, labels: ["research project", "publication"], category: "research" },
+      { title: "die funzel. halbjahresschrift für prätentiöse studien.", href: "/die-funzel/", date: 2020.01, labels: ["publication"], category: "research" },
+      { title: "epistemic gamification", href: "/epistemic-gamification/", date: 2026.02, labels: ["research project"], category: "research" },
+      { title: "aesthetics in scientific understanding", href: "/aesthetics-in-scientific-understanding/", date: 2021.01, labels: ["research project"], category: "research" },
+      { title: "business cards // 명함", href: "/business-cards/", date: 2023.06, labels: ["sculpture", "publication"], category: "art" },
+      { title: "2 ½ stars", href: "/2-half-stars/", date: 2023.06, labels: ["sculpture", "publication"], category: "art" },
+      { title: "gartenbühne bau mich auf / live from earth", href: "/live-from-earth/", date: 2021.07, labels: ["stage"], category: "other" },
+      { title: "an/aesthetics: notes on notes on camp", href: "/an-aesthetics/", date: 2022.01, labels: ["research project"], category: "research" },
+      { title: "i think i found my practice", href: "/i-think-i-found-my-practice/", date: 2026.01, labels: ["publication"], category: "art" }
     ];
 
-    var sortMenuEl = document.getElementById("sortMenu");
+    var filterMenuEl = document.getElementById("filterMenu");
     var list = document.getElementById("worklist");
     var track = document.getElementById("worklistTrack");
     var thumb = document.getElementById("worklistThumb");
@@ -448,50 +433,36 @@
       updateScrollbar();
     }
 
-    function renderByDate() {
+    // always sorted by date (newest first) - the filter menu below only
+    // narrows which category shows, same as the front page's collage.
+    function renderList() {
       list.innerHTML = "";
-      WORKS.slice().sort(function (a, b) { return b.date - a.date; }).forEach(function (w) {
-        list.appendChild(buildEntry(w));
-      });
-      afterRender();
-    }
-    // a work shows up once here even with two labels (no duplicating rows)
-    // - its sort position is the average of its two labels' alphabetical
-    // spots, so it settles in between those two groups rather than only
-    // under one of them, while its tag-stack still shows both labels.
-    function mediumSortKey(w) {
-      var idxs = w.labels.map(function (label) { return LABELS.indexOf(label); });
-      return idxs.length > 1 ? (idxs[0] + idxs[1]) / 2 : idxs[0];
-    }
-    function renderByMedium() {
-      list.innerHTML = "";
-      WORKS.slice().sort(function (a, b) { return mediumSortKey(a) - mediumSortKey(b); }).forEach(function (w) {
-        list.appendChild(buildEntry(w));
-      });
+      WORKS.filter(function (w) { return currentFilter === "all" || w.category === currentFilter; })
+        .sort(function (a, b) { return b.date - a.date; })
+        .forEach(function (w) { list.appendChild(buildEntry(w)); });
       afterRender();
     }
 
-    var sortLinks = sortMenuEl ? sortMenuEl.querySelectorAll("a[data-sort]") : [];
-    function setSortMode(mode) {
-      sortLinks.forEach(function (l) { l.classList.toggle("active", l.getAttribute("data-sort") === mode); });
-      if (mode === "medium") renderByMedium();
-      else renderByDate();
+    var filterLinks = filterMenuEl ? filterMenuEl.querySelectorAll("a[data-filter]") : [];
+    var currentFilter = "all";
+    function setFilter(filter) {
+      currentFilter = filter;
+      filterLinks.forEach(function (l) { l.classList.toggle("active", l.getAttribute("data-filter") === filter); });
+      renderList();
     }
 
-    // starts on "date" - one of the two is always the active sort, never
-    // an unsorted third state.
-    setSortMode("date");
+    setFilter("all");
 
-    sortLinks.forEach(function (link) {
+    filterLinks.forEach(function (link) {
       link.addEventListener("click", function (e) {
         e.preventDefault();
-        setSortMode(link.getAttribute("data-sort"));
+        setFilter(link.getAttribute("data-filter"));
       });
     });
 
-    // delegated so it keeps working after renderByMedium()/renderByDate()
-    // swap in brand-new <a> elements - a per-element listener set up once
-    // wouldn't survive that.
+    // delegated so it keeps working after renderList() swaps in brand-new
+    // <a> elements - a per-element listener set up once wouldn't survive
+    // that.
     list.addEventListener("click", function (e) {
       var a = e.target.closest("a");
       if (!a || !list.contains(a)) return;
