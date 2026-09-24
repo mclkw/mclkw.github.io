@@ -514,6 +514,24 @@
       return max;
     }
 
+    // the centroid-to-edge distance of the image's actual full rectangle
+    // (its transparent margin included), not just the visible/opaque
+    // silhouette facingExtent() measures - used wherever a piece meets the
+    // page window's own edge, so not even the transparent padding around a
+    // cutout is ever allowed to cross it (ordinary piece-to-piece packing
+    // and the corner-menu obstacle still use the tighter silhouette
+    // measure, since two images' invisible padding overlapping each other,
+    // or the menu, doesn't matter the way crossing the page edge does).
+    function rectExtent(inst, baseAngle, scaleOverride) {
+      var s = scaleOverride !== undefined ? scaleOverride : scaleFactorOf(inst);
+      var w = inst.profile.naturalW * s, h = inst.profile.naturalH * s;
+      var cx = inst.profile.centroidX * s, cy = inst.profile.centroidY * s;
+      if (baseAngle === 0) return w - cx; // right edge
+      if (baseAngle === Math.PI) return cx; // left edge
+      if (baseAngle === -Math.PI / 2) return cy; // top edge
+      return h - cy; // bottom edge
+    }
+
     var HOVER_EASE = 0.06;
     // the actual simulation resolves overlap firmly and quickly (so nothing
     // stays visibly interpenetrating) - "heavy/flowy/slow" comes from
@@ -657,8 +675,8 @@
         a = instances[i];
         if (!a.active) continue;
         var base = baseScaleFactorOf(a);
-        var neededW = facingExtent(a, Math.PI, base) + facingExtent(a, 0, base);
-        var neededH = facingExtent(a, -Math.PI / 2, base) + facingExtent(a, Math.PI / 2, base);
+        var neededW = rectExtent(a, Math.PI, base) + rectExtent(a, 0, base);
+        var neededH = rectExtent(a, -Math.PI / 2, base) + rectExtent(a, Math.PI / 2, base);
         a.fitScale = Math.min(1, availW / neededW, availH / neededH);
       }
 
@@ -715,24 +733,24 @@
           a = instances[i];
           if (!a.active) continue;
 
-          var bottomExt = facingExtent(a, Math.PI / 2);
+          var bottomExt = rectExtent(a, Math.PI / 2);
           if (a.y + bottomExt > floorY) {
             a.y = floorY - bottomExt;
             if (a.vy > 0) a.vy = 0;
           }
           // ceiling: the header line's bottom edge, not the bare viewport
           // top - a piece can never sit above it, or under it unseen.
-          var topExt = facingExtent(a, -Math.PI / 2);
+          var topExt = rectExtent(a, -Math.PI / 2);
           if (a.y - topExt < topWallY) {
             a.y = topWallY + topExt;
             if (a.vy < 0) a.vy = 0;
           }
-          var leftExt = facingExtent(a, Math.PI);
+          var leftExt = rectExtent(a, Math.PI);
           if (a.x - leftExt < leftWall) {
             a.x = leftWall + leftExt;
             if (a.vx < 0) a.vx = 0;
           }
-          var rightExt = facingExtent(a, 0);
+          var rightExt = rectExtent(a, 0);
           if (a.x + rightExt > rightWall) {
             a.x = rightWall - rightExt;
             if (a.vx > 0) a.vx = 0;
@@ -776,13 +794,13 @@
       for (i = 0; i < n; i++) {
         a = instances[i];
         if (!a.active) continue;
-        var hardBottom = facingExtent(a, Math.PI / 2);
+        var hardBottom = rectExtent(a, Math.PI / 2);
         if (a.y + hardBottom > floorY) a.y = floorY - hardBottom;
-        var hardTop = facingExtent(a, -Math.PI / 2);
+        var hardTop = rectExtent(a, -Math.PI / 2);
         if (a.y - hardTop < topWallY) a.y = topWallY + hardTop;
-        var hardLeft = facingExtent(a, Math.PI);
+        var hardLeft = rectExtent(a, Math.PI);
         if (a.x - hardLeft < leftWall) a.x = leftWall + hardLeft;
-        var hardRight = facingExtent(a, 0);
+        var hardRight = rectExtent(a, 0);
         if (a.x + hardRight > rightWall) a.x = rightWall - hardRight;
       }
 
@@ -820,13 +838,13 @@
         a.renderX += (a.x - a.renderX) * RENDER_EASE;
         a.renderY += (a.y - a.renderY) * RENDER_EASE;
 
-        var rBottom = facingExtent(a, Math.PI / 2);
+        var rBottom = rectExtent(a, Math.PI / 2);
         if (a.renderY + rBottom > floorY) a.renderY = floorY - rBottom;
-        var rTop = facingExtent(a, -Math.PI / 2);
+        var rTop = rectExtent(a, -Math.PI / 2);
         if (a.renderY - rTop < topWallY) a.renderY = topWallY + rTop;
-        var rLeft = facingExtent(a, Math.PI);
+        var rLeft = rectExtent(a, Math.PI);
         if (a.renderX - rLeft < leftWall) a.renderX = leftWall + rLeft;
-        var rRight = facingExtent(a, 0);
+        var rRight = rectExtent(a, 0);
         if (a.renderX + rRight > rightWall) a.renderX = rightWall - rRight;
       }
 
