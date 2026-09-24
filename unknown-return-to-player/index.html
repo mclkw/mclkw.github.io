@@ -611,7 +611,7 @@
 
       // on mobile the browser's own scroll position handles placement -
       // no lap-length/transform bookkeeping needed.
-      if (isMobile) return;
+      if (isMobile || IMAGES.length <= 1) return;
 
       var setLength = 0;
       for (var i = 0; i < IMAGES.length; i++) {
