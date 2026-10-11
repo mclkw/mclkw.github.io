@@ -29,13 +29,13 @@
   #thingsMenu a {
     text-transform: none;
   }
-  /* a bit under half the page, with a clear gap before the text - cover
+  /* a bit over 40% of the page, with a clear gap before the text - cover
      (not stretch) so resizing the window clips/zooms instead of
      distorting the picture's own ratio. */
   .about-photo {
     position: fixed;
     top: 0;
-    left: 53%;
+    left: 58%;
     right: 0;
     bottom: 0;
     background-image: url(/images/lkw.jpg);
@@ -44,24 +44,28 @@
     background-repeat: no-repeat;
     z-index: 5;
   }
-  /* the left half - the description at the top, and right underneath it the
-     two smaller columns (institutions | education). type scales with the
-     window height as well as width so it all fits without scrolling;
-     overflow-y only kicks in as a hidden
-     fallback for a very short/squeezed window, so nothing gets clipped. */
+  /* the left side - the description at the top, and right underneath it
+     the two columns (education | institutions). one text size for the
+     whole block: the script below shrinks --about-fs just enough that the
+     arial black first line fits on one line, and everything follows it.
+     overflow-y only kicks in as a hidden fallback for a very short/
+     squeezed window, so nothing gets clipped. */
   .about-text {
     position: fixed;
     top: calc(var(--header-h, 60px) + 2.5vmin);
     bottom: 5vmin;
     left: 5vmin;
-    width: 44vw;
+    width: 49vw;
     min-width: 220px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    gap: 1.8em;
+    gap: 1.4em;
     overflow-y: auto;
     scrollbar-width: none;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: var(--about-fs, clamp(0.8rem, min(1.1vw, 1.85vh), 1.05rem));
+    color: #000000;
     z-index: 800;
   }
   .about-text::-webkit-scrollbar {
@@ -70,10 +74,12 @@
     height: 0;
   }
   .about-blurb {
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: clamp(0.8rem, min(1.1vw, 1.85vh), 1.05rem);
     line-height: 1.5;
-    color: #000000;
+  }
+  .about-blurb .about-lead {
+    font-family: 'Arial Black', Arial, sans-serif;
+    font-weight: 900;
+    white-space: nowrap;
   }
   .about-blurb p,
   .about-cv p {
@@ -83,37 +89,46 @@
   .about-cv p + p {
     margin-top: 1em;
   }
-  /* institutions and education side by side, in slightly smaller type */
+  /* education and institutions side by side - education is never
+     narrower than a date tag plus its longest school name on one line. */
   .about-columns {
     display: grid;
-    grid-template-columns: 1.3fr 1fr;
+    grid-template-columns: minmax(min-content, 1fr) 1.1fr;
     gap: 4vmin;
     align-items: start;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: clamp(0.7rem, min(0.9vw, 1.55vh), 0.9rem);
-    color: #000000;
   }
   .about-cv {
-    line-height: 1.45;
+    line-height: 1.4;
   }
   .about-education {
-    line-height: 1.2;
+    line-height: 1.25;
   }
-  /* date in its own narrow column, school and programme stacked to its
-     right - so a long school name wraps within its column instead of
-     spilling back under the date. */
+  /* date tag in its own narrow column, school and programme stacked to
+     its right. */
   .about-education .edu-entry {
     display: grid;
-    grid-template-columns: 6em 1fr;
-    margin: 0 0 0.6em;
+    grid-template-columns: 6.6em auto;
+    margin: 0 0 0.7em;
   }
+  /* same oval tags as the index page's labels, just in black and white */
   .about-education .edu-date {
     grid-column: 1;
     grid-row: 1 / span 2;
+    justify-self: start;
+    align-self: start;
+    display: inline-block;
+    padding: 0.2em 0.65em;
+    border-radius: 999px;
+    background: #000000;
+    color: #ffffff;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    font-size: 0.8em;
   }
   .about-education .edu-school {
     grid-column: 2;
     font-weight: 700;
+    white-space: nowrap;
   }
   .about-education .edu-programme {
     grid-column: 2;
@@ -190,6 +205,12 @@
       width: auto;
       min-width: 0;
       overflow-y: visible;
+      font-size: 0.85rem;
+    }
+    /* far too long for one line at a readable size on a phone */
+    .about-blurb .about-lead,
+    .about-education .edu-school {
+      white-space: normal;
     }
     .about-blurb {
       margin-bottom: 1.5em;
@@ -202,10 +223,10 @@
     .about-columns {
       display: block;
     }
-    .about-cv {
+    .about-education {
       margin-bottom: 1.5em;
     }
-    .about-education {
+    .about-cv {
       padding-bottom: 1em;
     }
   }
@@ -232,7 +253,7 @@
   <div class="about-scroll" id="aboutScroll">
     <div class="about-text" id="aboutText">
       <div class="about-blurb" id="aboutBlurb">
-        <p>I am a visual artist and cross-disciplinary researcher with a background in philosophy.</p>
+        <p class="about-lead" id="aboutLead">I am a visual artist and cross-disciplinary researcher with a background in philosophy.</p>
         <p>My work starts from the observation that emerging digital technologies define new rules and constraints for our agency, and in doing so, offer us new social, political and epistemic games to play. In my research, I am primarily interested in how this affects what we believe: how new games redefine how we discuss and inform ourselves and what seems to become rational once we start playing them.</p>
         <p>In my artistic practice, I focus on the material and visceral side of these games, confronting how it feels to play. My work revolves around the sensation of technologically mediated interaction, recreation, yearning, speculation, and connection. A recurring focus is what I call technologies of artificial entertainment: slot games, chatbots, animatronics and fun-fair attractions - narrow machines designed to isolate and mimic particular human emotions. Alongside playable experiences, my observations find form in costume and performance, participatory installations, sculpture and printed matter. I currently work as an assistant in the workshop for polymer joining technology at the University of Applied Arts Vienna. 
      </p>
@@ -244,17 +265,17 @@
       <div class="about-photo" id="aboutPhoto"></div>
 
       <div class="about-columns">
-        <div class="about-cv" id="aboutCv">
-        <p><strong>As an artist</strong>, I have worked with, among others: <em>SpielArt Theaterfestival</em>, <em>Villa Stuck</em>, <em>Potsdamer Tanztage</em>, <em>Live from Earth Klub</em>, <em>Zentrale Zentrale</em>, <em>White Noise Seoul</em>, <em>Symposium Urbanum Nürnberg</em> and <em>Donaufestival</em>. <strong>As a researcher</strong>, I have taught or worked at the <em>Munich Center for Mathematical Philosophy</em>, the <em>Munich Center for Ethics</em>, <em>Freie Universität Berlin</em>, the <em>Alfred Toepfer Stiftung's Europakolleg Cultural Sustainability</em>, <em>Forum für Freiraum</em> and the <em>German Academic Scholarship Foundation</em>. </p>
-        <p>I co-founded and edited the satirical philosophy magazine <em>Die Funzel. Halbjahresschrift für prätentiöse Studien.</em>, and have written for <em>Arts of the Working Class</em>, <em>springerin</em> and <em>Süddeutsche Zeitung</em>.</p>
-        </div>
-
         <div class="about-education" id="aboutEducation">
       <p class="edu-entry"><span class="edu-date">2025–2027</span><span class="edu-school">University of Applied Arts Vienna</span> <span class="edu-programme">MA in Cross-Disciplinary Strategies</span></p>
       <p class="edu-entry"><span class="edu-date">2023</span><span class="edu-school">Seoul National University</span> <span class="edu-programme">Exchange in Design and Philosophical Aesthetics</span></p>
       <p class="edu-entry"><span class="edu-date">2022–2025</span><span class="edu-school">Free University Berlin</span> <span class="edu-programme">MA in Philosophy</span></p>
       <p class="edu-entry"><span class="edu-date">2020</span><span class="edu-school">Sorbonne Paris IV</span> <span class="edu-programme">Exchange in Logic and Philosophy of Science</span></p>
       <p class="edu-entry"><span class="edu-date">2017–2021</span><span class="edu-school">LMU Munich</span> <span class="edu-programme">BA in Philosophy and Linguistics</span></p>
+        </div>
+
+        <div class="about-cv" id="aboutCv">
+        <p><strong>As an artist</strong>, I have worked with, among others: <em>SpielArt Theaterfestival</em>, <em>Villa Stuck</em>, <em>Potsdamer Tanztage</em>, <em>Live from Earth Klub</em>, <em>Zentrale Zentrale</em>, <em>White Noise Seoul</em>, <em>Symposium Urbanum Nürnberg</em> and <em>Donaufestival</em>. <strong>As a researcher</strong>, I have taught or worked at the <em>Munich Center for Mathematical Philosophy</em>, the <em>Munich Center for Ethics</em>, <em>Freie Universität Berlin</em>, the <em>Alfred Toepfer Stiftung's Europakolleg Cultural Sustainability</em>, <em>Forum für Freiraum</em> and the <em>German Academic Scholarship Foundation</em>. </p>
+        <p>I co-founded and edited the satirical philosophy magazine <em>Die Funzel. Halbjahresschrift für prätentiöse Studien.</em>, and have written for <em>Arts of the Working Class</em>, <em>springerin</em> and <em>Süddeutsche Zeitung</em>.</p>
         </div>
       </div>
     </div>
@@ -279,6 +300,34 @@
     window.addEventListener("orientationchange", updateHeaderHeightVar);
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(updateHeaderHeightVar);
+    }
+  })();
+
+  (function () {
+    // landscape: the arial black first line stays on one line - if it
+    // doesn't fit at the default size, the whole text block's size
+    // (--about-fs) shrinks just enough that it does, so all text on the
+    // page stays the same size. portrait lets that line wrap instead.
+    var text = document.getElementById("aboutText");
+    var lead = document.getElementById("aboutLead");
+    if (!text || !lead) return;
+    var portrait = window.matchMedia("(orientation: portrait)");
+
+    function fit() {
+      text.style.removeProperty("--about-fs");
+      if (portrait.matches) return;
+      var overflow = lead.scrollWidth / lead.clientWidth;
+      if (overflow > 1) {
+        var size = parseFloat(getComputedStyle(text).fontSize);
+        text.style.setProperty("--about-fs", (size / overflow) * 0.99 + "px");
+      }
+    }
+
+    fit();
+    window.addEventListener("resize", fit);
+    window.addEventListener("orientationchange", fit);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(fit);
     }
   })();
 
