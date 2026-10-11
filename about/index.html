@@ -44,101 +44,80 @@
     background-repeat: no-repeat;
     z-index: 5;
   }
-  /* bound to the upper border, mirrored to the left side - reaches
-     further down than education's own box (bound to the lower border)
-     so more of the text shows before its internal scroll kicks in,
-     while still capped short of colliding with education coming up
-     from the bottom in a short/squeezed landscape window. a thin
-     custom scrollbar sits to its left when it needs to scroll. */
-  .about-blurb-wrap {
+  /* the left half - the description at the top, and right underneath it the
+     two smaller columns (institutions | education). type scales with the
+     window height as well as width so it all fits without scrolling;
+     overflow-y only kicks in as a hidden
+     fallback for a very short/squeezed window, so nothing gets clipped. */
+  .about-text {
     position: fixed;
     top: calc(var(--header-h, 60px) + 2.5vmin);
+    bottom: 5vmin;
     left: 5vmin;
     width: 44vw;
     min-width: 220px;
-    max-height: 54vh;
     display: flex;
-    flex-direction: row;
-    gap: 8px;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 1.8em;
+    overflow-y: auto;
+    scrollbar-width: none;
     z-index: 800;
   }
-  .about-blurb-track {
-    position: relative;
-    flex: 0 0 5px;
-    width: 5px;
-    border-radius: 2.5px;
-    background: rgba(0, 0, 0, 0.12);
-    cursor: pointer;
-  }
-  .about-blurb-thumb {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 2.5px;
-    background: #000000;
-  }
-  .about-blurb {
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow-y: auto;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: clamp(0.85rem, 1.1vw, 1.05rem);
-    line-height: 1.6;
-    color: #000000;
-  }
-  .about-blurb p {
-    margin: 0;
-  }
-  .about-blurb p + p {
-    margin-top: 1em;
-  }
-  .about-blurb,
-  .about-education {
-    scrollbar-width: none;
-  }
-  .about-blurb::-webkit-scrollbar,
-  .about-education::-webkit-scrollbar {
+  .about-text::-webkit-scrollbar {
     display: none;
     width: 0;
     height: 0;
   }
-  /* anchored to the bottom-left corner - same width as the blurb above,
-     since each entry now wraps its programme onto its own indented line
-     whenever it doesn't fit alongside the school name, same as portrait.
-     same capped-height/scroll treatment as the blurb, for the same
-     reason - both behave the same way instead of one being unconstrained. */
-  .about-education {
-    position: fixed;
-    left: 5vmin;
-    bottom: 5vmin;
-    width: 44vw;
-    min-width: 220px;
-    max-height: 43vh;
-    overflow-y: auto;
+  .about-blurb {
     font-family: Arial, Helvetica, sans-serif;
-    font-size: clamp(0.85rem, 1.1vw, 1.05rem);
-    line-height: 1.2;
+    font-size: clamp(0.8rem, min(1.1vw, 1.85vh), 1.05rem);
+    line-height: 1.5;
     color: #000000;
-    z-index: 800;
   }
+  .about-blurb p,
+  .about-cv p {
+    margin: 0;
+  }
+  .about-blurb p + p,
+  .about-cv p + p {
+    margin-top: 1em;
+  }
+  /* institutions and education side by side, in slightly smaller type */
+  .about-columns {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 4vmin;
+    align-items: start;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: clamp(0.7rem, min(0.9vw, 1.55vh), 0.9rem);
+    color: #000000;
+  }
+  .about-cv {
+    line-height: 1.45;
+  }
+  .about-education {
+    line-height: 1.2;
+  }
+  /* date in its own narrow column, school and programme stacked to its
+     right - so a long school name wraps within its column instead of
+     spilling back under the date. */
   .about-education .edu-entry {
-    margin: 0 0 0.45em;
+    display: grid;
+    grid-template-columns: 6em 1fr;
+    margin: 0 0 0.6em;
   }
   .about-education .edu-date {
-    display: inline-block;
-    min-width: 8em;
+    grid-column: 1;
+    grid-row: 1 / span 2;
   }
   .about-education .edu-school {
+    grid-column: 2;
     font-weight: 700;
   }
-  /* always its own line, indented to align with where the school name
-     starts (not the date) - in both orientations now, not just portrait. */
   .about-education .edu-programme {
-    display: block;
+    grid-column: 2;
     margin-top: 0.15em;
-    margin-left: 8em;
   }
 
   .about-scroll-track,
@@ -146,9 +125,9 @@
     display: none;
   }
 
-  /* portrait: no more folding anything - the whole page becomes one
-     scrollable column (text, then the photo, then education), with a
-     custom scrollbar matching the work page's title-list one. the fixed
+  /* portrait: the whole page becomes one scrollable column (text, then
+     the photo, then institutions, then education), with a custom
+     scrollbar matching the work page's title-list one. the fixed
      positioning above is overridden to plain flow for every block here. */
   @media (orientation: portrait) {
     /* stops well clear of the fixed "things i like" corner link, which
@@ -198,39 +177,35 @@
       height: 0;
     }
 
-    .about-blurb-wrap,
-    .about-photo,
-    .about-education {
+    .about-text,
+    .about-photo {
       position: static;
       left: auto;
       right: auto;
       top: auto;
       bottom: auto;
     }
-    .about-blurb-wrap {
+    .about-text {
       display: block;
       width: auto;
       min-width: 0;
-      max-height: none;
-      margin-bottom: 1.5em;
-    }
-    .about-blurb-track,
-    .about-blurb-thumb {
-      display: none;
+      overflow-y: visible;
     }
     .about-blurb {
-      overflow-y: visible;
+      margin-bottom: 1.5em;
     }
     .about-photo {
       width: 100%;
       height: 34vh;
       margin-bottom: 1.5em;
     }
+    .about-columns {
+      display: block;
+    }
+    .about-cv {
+      margin-bottom: 1.5em;
+    }
     .about-education {
-      width: auto;
-      min-width: 0;
-      max-height: none;
-      overflow-y: visible;
       padding-bottom: 1em;
     }
   }
@@ -255,29 +230,33 @@
     <div class="about-scroll-thumb" id="aboutScrollThumb"></div>
   </div>
   <div class="about-scroll" id="aboutScroll">
-    <div class="about-blurb-wrap" id="aboutBlurbWrap">
-      <div class="about-blurb-track" id="aboutBlurbTrack">
-        <div class="about-blurb-thumb" id="aboutBlurbThumb"></div>
-      </div>
+    <div class="about-text" id="aboutText">
       <div class="about-blurb" id="aboutBlurb">
         <p>I am a visual artist and cross-disciplinary researcher with a background in philosophy.</p>
         <p>My work starts from the observation that emerging digital technologies define new rules and constraints for our agency, and in doing so, offer us new social, political and epistemic games to play. In my research, I am primarily interested in how this affects what we believe: how new games redefine how we discuss and inform ourselves and what seems to become rational once we start playing them.</p>
         <p>In my artistic practice, I focus on the material and visceral side of these games, confronting how it feels to play. My work revolves around the sensation of technologically mediated interaction, recreation, yearning, speculation, and connection. A recurring focus is what I call technologies of artificial entertainment: slot games, chatbots, animatronics and fun-fair attractions - narrow machines designed to isolate and mimic particular human emotions. Alongside playable experiences, my observations find form in costume and performance, participatory installations, sculpture and printed matter. I currently work as an assistant in the workshop for polymer joining technology at the University of Applied Arts Vienna. 
      </p>
-        <p><strong>As an artist</strong>, I have worked with, among others: <em>SpielArt Theaterfestival</em>, <em>Villa Stuck</em>, <em>Potsdamer Tanztage</em>, <em>Live from Earth Klub</em>, <em>Zentrale Zentrale</em>, <em>White Noise Seoul</em>, <em>Symposium Urbanum Nürnberg</em> and <em>Donaufestival</em>. <strong>As a researcher</strong>, I have taught or worked at the <em>Munich Center for Mathematical Philosophy</em>, the <em>Munich Center for Ethics</em>, <em>Freie Universität Berlin</em>, the <em>Alfred Toepfer Stiftung's Europakolleg Cultural Sustainability</em>, <em>Forum für Freiraum</em> and the <em>German Academic Scholarship Foundation</em>. </p>
-        <p>I co-founded and edited the satirical philosophy magazine <em>Die Funzel. Halbjahresschrift für prätentiöse Studien.</em>, and have written for <em>Arts of the Working Class</em>, <em>springerin</em> and <em>Süddeutsche Zeitung</em>.</p>
         <p>I am based between Vienna and Berlin.</p>
       </div>
-    </div>
 
-    <div class="about-photo" id="aboutPhoto"></div>
+      <!-- fixed to the right half in landscape (out of the flow); in
+           portrait it sits here, between the description and the columns. -->
+      <div class="about-photo" id="aboutPhoto"></div>
 
-    <div class="about-education" id="aboutEducation">
+      <div class="about-columns">
+        <div class="about-cv" id="aboutCv">
+        <p><strong>As an artist</strong>, I have worked with, among others: <em>SpielArt Theaterfestival</em>, <em>Villa Stuck</em>, <em>Potsdamer Tanztage</em>, <em>Live from Earth Klub</em>, <em>Zentrale Zentrale</em>, <em>White Noise Seoul</em>, <em>Symposium Urbanum Nürnberg</em> and <em>Donaufestival</em>. <strong>As a researcher</strong>, I have taught or worked at the <em>Munich Center for Mathematical Philosophy</em>, the <em>Munich Center for Ethics</em>, <em>Freie Universität Berlin</em>, the <em>Alfred Toepfer Stiftung's Europakolleg Cultural Sustainability</em>, <em>Forum für Freiraum</em> and the <em>German Academic Scholarship Foundation</em>. </p>
+        <p>I co-founded and edited the satirical philosophy magazine <em>Die Funzel. Halbjahresschrift für prätentiöse Studien.</em>, and have written for <em>Arts of the Working Class</em>, <em>springerin</em> and <em>Süddeutsche Zeitung</em>.</p>
+        </div>
+
+        <div class="about-education" id="aboutEducation">
       <p class="edu-entry"><span class="edu-date">2025–2027</span><span class="edu-school">University of Applied Arts Vienna</span> <span class="edu-programme">MA in Cross-Disciplinary Strategies</span></p>
       <p class="edu-entry"><span class="edu-date">2023</span><span class="edu-school">Seoul National University</span> <span class="edu-programme">Exchange in Design and Philosophical Aesthetics</span></p>
       <p class="edu-entry"><span class="edu-date">2022–2025</span><span class="edu-school">Free University Berlin</span> <span class="edu-programme">MA in Philosophy</span></p>
       <p class="edu-entry"><span class="edu-date">2020</span><span class="edu-school">Sorbonne Paris IV</span> <span class="edu-programme">Exchange in Logic and Philosophy of Science</span></p>
       <p class="edu-entry"><span class="edu-date">2017–2021</span><span class="edu-school">LMU Munich</span> <span class="edu-programme">BA in Philosophy and Linguistics</span></p>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -300,67 +279,6 @@
     window.addEventListener("orientationchange", updateHeaderHeightVar);
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(updateHeaderHeightVar);
-    }
-  })();
-
-  (function () {
-    // custom scrollbar for the blurb, to its left - same mechanics as the
-    // work page's title-list scrollbar. inert in portrait (track/thumb
-    // are display:none there, and the blurb isn't independently
-    // scrollable - it's just part of the one page-level scroll column).
-    var scroll = document.getElementById("aboutBlurb");
-    var track = document.getElementById("aboutBlurbTrack");
-    var thumb = document.getElementById("aboutBlurbThumb");
-    if (scroll && track && thumb) {
-      var update = function () {
-        var scrollable = scroll.scrollHeight - scroll.clientHeight;
-        var trackH = track.clientHeight;
-        var ratioVisible = Math.min(1, scroll.clientHeight / scroll.scrollHeight);
-        var thumbH = Math.min(trackH, Math.max(18, trackH * ratioVisible));
-        thumb.style.height = thumbH + "px";
-        var maxThumbTop = trackH - thumbH;
-        var scrollRatio = scrollable > 0 ? scroll.scrollTop / scrollable : 0;
-        thumb.style.top = (scrollRatio * maxThumbTop) + "px";
-      };
-
-      scroll.addEventListener("scroll", update);
-      window.addEventListener("resize", update);
-      window.addEventListener("orientationchange", update);
-      if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(update);
-      }
-      update();
-
-      var dragging = false, startY = 0, startScroll = 0;
-      thumb.addEventListener("mousedown", function (e) {
-        dragging = true;
-        startY = e.clientY;
-        startScroll = scroll.scrollTop;
-        e.preventDefault();
-      });
-      window.addEventListener("mousemove", function (e) {
-        if (!dragging) return;
-        var trackH = track.clientHeight;
-        var thumbH = thumb.offsetHeight;
-        var maxThumbTop = trackH - thumbH;
-        var scrollable = scroll.scrollHeight - scroll.clientHeight;
-        if (maxThumbTop <= 0 || scrollable <= 0) return;
-        var deltaScroll = ((e.clientY - startY) / maxThumbTop) * scrollable;
-        scroll.scrollTop = startScroll + deltaScroll;
-      });
-      window.addEventListener("mouseup", function () { dragging = false; });
-
-      track.addEventListener("mousedown", function (e) {
-        if (e.target === thumb) return;
-        var rect = track.getBoundingClientRect();
-        var clickY = e.clientY - rect.top;
-        var thumbH = thumb.offsetHeight;
-        var maxThumbTop = track.clientHeight - thumbH;
-        var scrollable = scroll.scrollHeight - scroll.clientHeight;
-        if (maxThumbTop <= 0 || scrollable <= 0) return;
-        var targetTop = Math.min(Math.max(0, clickY - thumbH / 2), maxThumbTop);
-        scroll.scrollTop = (targetTop / maxThumbTop) * scrollable;
-      });
     }
   })();
 
