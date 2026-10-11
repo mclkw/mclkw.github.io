@@ -13,7 +13,7 @@ html, body {
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 1.4vmin 2.5vmin;
   border-bottom: 2px solid #000000;
   background: #ffffff;
