@@ -85,17 +85,22 @@
   .about-cv p {
     margin: 0;
   }
-  .about-blurb p + p,
-  .about-cv p + p {
+  .about-blurb p + p {
     margin-top: 1em;
+  }
+  .about-cv p + p {
+    margin-top: 0.7em;
   }
   /* education and institutions side by side - education is never
      narrower than a date tag plus its longest school name on one line. */
   .about-columns {
     display: grid;
-    grid-template-columns: minmax(min-content, 1fr) 1.1fr;
+    grid-template-columns: minmax(min-content, 1fr) 1.35fr;
     gap: 4vmin;
     align-items: start;
+    /* pushed down to the bottom edge, whatever space is left goes
+       between it and the description (ignored in portrait - block flow). */
+    margin-top: auto;
   }
   .about-cv {
     line-height: 1.4;
@@ -274,7 +279,8 @@
         </div>
 
         <div class="about-cv" id="aboutCv">
-        <p><strong>As an artist</strong>, I have worked with, among others: <em>SpielArt Theaterfestival</em>, <em>Villa Stuck</em>, <em>Potsdamer Tanztage</em>, <em>Live from Earth Klub</em>, <em>Zentrale Zentrale</em>, <em>White Noise Seoul</em>, <em>Symposium Urbanum Nürnberg</em> and <em>Donaufestival</em>. <strong>As a researcher</strong>, I have taught or worked at the <em>Munich Center for Mathematical Philosophy</em>, the <em>Munich Center for Ethics</em>, <em>Freie Universität Berlin</em>, the <em>Alfred Toepfer Stiftung's Europakolleg Cultural Sustainability</em>, <em>Forum für Freiraum</em> and the <em>German Academic Scholarship Foundation</em>. </p>
+        <p>As an artist, I have worked with, among others: <em>SpielArt Theaterfestival</em>, <em>Villa Stuck</em>, <em>Potsdamer Tanztage</em>, <em>Live from Earth Klub</em>, <em>Zentrale Zentrale</em>, <em>White Noise Seoul</em>, <em>Symposium Urbanum Nürnberg</em> and <em>Donaufestival</em>. </p>
+          <p>As a researcher, I have taught or worked at the <em>Munich Center for Mathematical Philosophy</em>, the <em>Munich Center for Ethics</em>, <em>Freie Universität Berlin</em>, the <em>Alfred Toepfer Stiftung's Europakolleg Cultural Sustainability</em>, <em>Forum für Freiraum</em> and the <em>German Academic Scholarship Foundation</em>. </p>
         <p>I co-founded and edited the satirical philosophy magazine <em>Die Funzel. Halbjahresschrift für prätentiöse Studien.</em>, and have written for <em>Arts of the Working Class</em>, <em>springerin</em> and <em>Süddeutsche Zeitung</em>.</p>
         </div>
       </div>
