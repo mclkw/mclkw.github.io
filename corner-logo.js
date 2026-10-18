@@ -10,7 +10,7 @@
     // each visit - same roaming/bounce mechanics either way, just a
     // different color. must happen before the load-check below.
     if (el.hasAttribute("data-random-logo") && !el.getAttribute("src")) {
-      var colors = ["logolila.png", "logoorange.png", "logoblau.png", "logorot.png"];
+      var colors = ["logolila.webp", "logoorange.webp", "logoblau.webp", "logorot.webp"];
       el.src = "/images/" + colors[Math.floor(Math.random() * colors.length)];
     }
 

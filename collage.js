@@ -1,5 +1,5 @@
 (function () {
-  var IMAGE_DIR = "/images/frontpage/";
+  var IMAGE_DIR = "/images/frontpage/web/";
   var IMAGES = [
     "Upcycling.png", "Wirbelwind.png", "Wirbelwind2.png",
     "aesthetics_in_scientific.png", "airbrush.png",
@@ -873,7 +873,8 @@
           });
         };
         img.onerror = function () { resolve(null); };
-        img.src = IMAGE_DIR + name;
+        // resized webp copies of the originals in /images/frontpage/
+        img.src = IMAGE_DIR + name.replace(/\.png$/i, "").replace(/\.jpe?g$/i, "-jpg") + ".webp";
       });
     })).then(function (results) {
       results.filter(Boolean).forEach(function (r, idx) {
