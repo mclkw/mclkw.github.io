@@ -85,22 +85,36 @@
   .about-cv p {
     margin: 0;
   }
-  .about-blurb p + p,
-  .about-cv p + p {
+  .about-blurb p + p {
     margin-top: 1em;
+  }
+  .about-cv p + p {
+    margin-top: 0.7em;
   }
   /* education and institutions side by side - education is never
      narrower than a date tag plus its longest school name on one line. */
   .about-columns {
     display: grid;
-    grid-template-columns: minmax(min-content, 1fr) 1.1fr;
+    grid-template-columns: minmax(min-content, 1fr) 1.35fr;
     gap: 4vmin;
     align-items: start;
+    /* pushed down to the bottom edge, whatever space is left goes
+       between it and the description (ignored in portrait - block flow). */
+    margin-top: auto;
   }
   .about-cv {
     line-height: 1.4;
   }
   .about-education {
+    line-height: 1.25;
+  }
+  /* section title - arial black, a little bigger than the top menu, followed
+     by a paragraph-sized gap. */
+  .about-heading {
+    margin: 0 0 0.8em;
+    font-family: 'Arial Black', Arial, sans-serif;
+    font-weight: 900;
+    font-size: clamp(1.1rem, 1.9vw, 1.6rem);
     line-height: 1.25;
   }
   /* date tag in its own narrow column, school and programme stacked to
@@ -255,7 +269,7 @@
       <div class="about-blurb" id="aboutBlurb">
         <p class="about-lead" id="aboutLead">I am a visual artist and cross-disciplinary researcher with a background in philosophy.</p>
         <p>My work starts from the observation that emerging digital technologies define new rules and constraints for our agency, and in doing so, offer us new social, political and epistemic games to play. In my research, I am primarily interested in how this affects what we believe: how new games redefine how we discuss and inform ourselves and what seems to become rational once we start playing them.</p>
-        <p>In my artistic practice, I focus on the material and visceral side of these games, confronting how it feels to play. My work revolves around the sensation of technologically mediated interaction, recreation, yearning, speculation, and connection. A recurring focus is what I call technologies of artificial entertainment: slot games, chatbots, animatronics and fun-fair attractions - narrow machines designed to isolate and mimic particular human emotions. Alongside playable experiences, my observations find form in writing,costume and performance, participatory installations, sculpture and printed matter. I currently work as an assistant in the workshop for polymer joining technology at the University of Applied Arts Vienna. 
+        <p>In my artistic practice, I focus on the material and visceral side of these games, confronting how it feels to play. My work revolves around the sensation of technologically mediated interaction, recreation, yearning, speculation, and connection. A recurring focus is what I call technologies of artificial entertainment: slot games, chatbots, animatronics and fun-fair attractions - narrow machines designed to isolate and mimic particular human emotions. Alongside playable experiences, my observations find form in costume and performance, participatory installations, sculpture and printed matter. I currently work as an assistant in the workshop for polymer joining technology at the University of Applied Arts Vienna. 
      </p>
         <p>I am based between Vienna and Berlin.</p>
       </div>
@@ -266,11 +280,12 @@
 
       <div class="about-columns">
         <div class="about-education" id="aboutEducation">
+          <h2 class="about-heading">education</h2>
       <p class="edu-entry"><span class="edu-date">2025–2027</span><span class="edu-school">University of Applied Arts Vienna</span> <span class="edu-programme">MA in Cross-Disciplinary Strategies</span></p>
       <p class="edu-entry"><span class="edu-date">2023</span><span class="edu-school">Seoul National University</span> <span class="edu-programme">Exchange in Design and Philosophical Aesthetics</span></p>
       <p class="edu-entry"><span class="edu-date">2022–2025</span><span class="edu-school">Free University Berlin</span> <span class="edu-programme">MA in Philosophy</span></p>
       <p class="edu-entry"><span class="edu-date">2020</span><span class="edu-school">Sorbonne Paris IV</span> <span class="edu-programme">Exchange in Logic and Philosophy of Science</span></p>
-      <p class="edu-entry"><span class="edu-date">2017–2021</span><span class="edu-school">Ludwig-Maximilians-Universität Munich</span> <span class="edu-programme">BA in Philosophy and Linguistics</span></p>
+      <p class="edu-entry"><span class="edu-date">2017–2021</span><span class="edu-school">LMU Munich</span> <span class="edu-programme">BA in Philosophy and Linguistics</span></p>
         </div>
 
         <div class="about-cv" id="aboutCv">
